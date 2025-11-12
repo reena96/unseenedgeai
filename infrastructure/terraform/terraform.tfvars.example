@@ -1,0 +1,84 @@
+# Terraform Variables for MASS Infrastructure
+# Copy this file to terraform.tfvars and fill in your values
+
+# ============================================
+# CORE PROJECT SETTINGS
+# ============================================
+
+project_id  = "unseenedgeai"
+region      = "us-central1"
+zone        = "us-central1-a"
+environment = "production"
+
+# ============================================
+# MONITORING & ALERTING
+# ============================================
+
+# Email for GCP alerts (REQUIRED for production)
+alert_email = "your-email@example.com" # TODO: Update with your email
+
+# Monthly budget cap in USD
+budget_amount = 1000
+
+# ============================================
+# DATABASE SETTINGS (Use defaults or customize)
+# ============================================
+
+# db_name              = "mass_db"
+# db_tier              = "db-custom-2-7680"
+# db_backup_time       = "03:00"
+# db_maintenance_window = {
+#   day  = 7  # Sunday
+#   hour = 4  # 4 AM UTC
+# }
+
+# ============================================
+# CLOUD RUN SETTINGS (Use defaults or customize)
+# ============================================
+
+# api_service_name  = "mass-api"
+# api_min_instances = 0
+# api_max_instances = 10
+# api_memory        = "2Gi"
+# api_cpu           = "2"
+# api_timeout       = 300
+
+# ============================================
+# STORAGE SETTINGS (Use defaults or customize)
+# ============================================
+
+# audio_retention_days      = 30
+# enable_storage_versioning = true
+
+# ============================================
+# TASK QUEUE SETTINGS (Use defaults or customize)
+# ============================================
+
+# transcription_queue_concurrency = 10
+# inference_queue_concurrency     = 20
+
+# ============================================
+# SECURITY SETTINGS
+# ============================================
+
+# CORS allowed origins (add your frontend URLs)
+allowed_cors_origins = [
+  "http://localhost:3000",
+  # "https://dashboard.unseenedge.ai", # TODO: Add production URL
+]
+
+# Enable audit logging
+enable_audit_logging = true
+
+# ============================================
+# FEATURE FLAGS
+# ============================================
+
+# Enable high availability for Cloud SQL
+enable_high_availability = true
+
+# Enable point-in-time recovery
+enable_point_in_time_recovery = true
+
+# Enable deletion protection (prevents accidental resource deletion)
+enable_deletion_protection = true
