@@ -1,12 +1,17 @@
 """Database connection and session management."""
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import declarative_base
 from app.core.config import settings
+
+# Ensure DATABASE_URL uses async driver
+database_url = settings.DATABASE_URL
+if database_url.startswith("postgresql://") or database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://")
+    database_url = database_url.replace("postgres://", "postgresql+asyncpg://")
 
 # Create async engine
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    database_url,
     echo=settings.DEBUG,
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
@@ -48,25 +53,31 @@ async def init_db():
         await conn.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
 
         # Convert game_telemetry to hypertable
-        await conn.execute("""
+        await conn.execute(
+            """
             SELECT create_hypertable(
                 'game_telemetry',
                 'timestamp',
                 if_not_exists => TRUE,
                 migrate_data => TRUE
             );
-        """)
+        """
+        )
 
         # Create indexes optimized for time-series queries
-        await conn.execute("""
+        await conn.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_game_telemetry_student_time
             ON game_telemetry (student_id, timestamp DESC);
-        """)
+        """
+        )
 
-        await conn.execute("""
+        await conn.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_game_telemetry_event_time
             ON game_telemetry (event_type, timestamp DESC);
-        """)
+        """
+        )
 
 
 async def close_db():

@@ -18,6 +18,7 @@ from app.api.endpoints import (
     students,
     teachers,
     skills,
+    transcription,
 )
 
 # Configure logging
@@ -78,6 +79,9 @@ app.include_router(telemetry.router, prefix=settings.API_V1_STR, tags=["telemetr
 app.include_router(students.router, prefix=settings.API_V1_STR, tags=["students"])
 app.include_router(teachers.router, prefix=settings.API_V1_STR, tags=["teachers"])
 app.include_router(skills.router, prefix=settings.API_V1_STR, tags=["skills"])
+app.include_router(
+    transcription.router, prefix=settings.API_V1_STR, tags=["transcription"]
+)
 
 
 @app.get("/")
