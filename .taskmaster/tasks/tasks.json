@@ -1,0 +1,484 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Phase 1: Foundation Infrastructure",
+        "description": "Build core infrastructure including GCP setup, FastAPI server, PostgreSQL/TimescaleDB, game telemetry pipeline, Celery task queue, authentication, and CI/CD",
+        "details": "Deliverables: GCP project setup, FastAPI server with basic endpoints, PostgreSQL and TimescaleDB setup, Game telemetry ingestion pipeline, Celery task queue, Basic authentication system, CI/CD pipeline. Timeline: Weeks 1-8. Team: 4 engineers (3 backend, 1 DevOps)",
+        "testStrategy": "Unit tests for API endpoints, integration tests for database operations, load tests for telemetry ingestion, CI/CD pipeline validation",
+        "status": "in-progress",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "GCP Project Setup and Configuration",
+            "description": "Set up GCP project, configure regions, enable required APIs, set up IAM roles and service accounts",
+            "details": "Enable Cloud Run, Cloud SQL, Cloud Storage, Cloud Speech-to-Text, Vertex AI APIs. Configure IAM roles for service accounts. Set up billing and quotas.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 1
+          },
+          {
+            "id": 2,
+            "title": "FastAPI Server Foundation",
+            "description": "Create FastAPI application structure with basic endpoints, middleware, error handling, and documentation",
+            "details": "Set up FastAPI project structure, implement authentication endpoints, telemetry endpoints, health check endpoints. Configure CORS, logging, and OpenAPI documentation.",
+            "status": "done",
+            "dependencies": [
+              "1.1"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 3,
+            "title": "PostgreSQL and TimescaleDB Setup",
+            "description": "Deploy Cloud SQL PostgreSQL with TimescaleDB extension, design schema, and implement database models",
+            "details": "Set up Cloud SQL instance with high availability, install TimescaleDB extension, create database schema for students, teachers, telemetry, transcripts, assessments. Implement SQLAlchemy models.",
+            "status": "done",
+            "dependencies": [
+              "1.1"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 4,
+            "title": "Game Telemetry Ingestion Pipeline",
+            "description": "Implement Kafka event streaming for game telemetry with batch and streaming processing capabilities",
+            "details": "Set up Kafka cluster, implement telemetry event schema, create producers/consumers, implement batching logic, add data validation and error handling.",
+            "status": "pending",
+            "dependencies": [
+              "1.2",
+              "1.3"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 5,
+            "title": "Celery Task Queue Setup",
+            "description": "Configure Celery with Redis for async task processing including transcription, analysis, and inference jobs",
+            "details": "Set up Redis instance, configure Celery workers, implement task definitions for STT, linguistic analysis, skill inference. Add monitoring and retry logic.",
+            "status": "pending",
+            "dependencies": [
+              "1.2",
+              "1.3"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 6,
+            "title": "Authentication and Authorization System",
+            "description": "Implement OAuth 2.0 with JWT tokens and role-based access control",
+            "details": "Set up OAuth 2.0 flow, implement JWT token generation/validation, create user roles (teacher, admin, student, counselor), implement RBAC middleware, add audit logging.",
+            "status": "pending",
+            "dependencies": [
+              "1.2",
+              "1.3"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 7,
+            "title": "CI/CD Pipeline Implementation",
+            "description": "Set up GitHub Actions for automated testing, building, and deployment to GCP Cloud Run",
+            "details": "Create GitHub Actions workflows, implement automated testing, configure Docker builds, set up blue-green deployments, implement automated rollback on errors.",
+            "status": "pending",
+            "dependencies": [
+              "1.2"
+            ],
+            "parentTaskId": 1
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2: NLP and Skill Inference",
+        "description": "Implement speech-to-text, linguistic analysis, behavioral feature extraction, XGBoost model training, evidence extraction, and reasoning generation",
+        "details": "Deliverables: Google Cloud STT integration, Linguistic analysis pipeline, Behavioral feature extraction, XGBoost model training and validation, Evidence extraction system, Reasoning generation (LLM integration), Model monitoring and alerting. Timeline: Weeks 9-16. Team: 4 engineers (2 ML, 1 backend, 1 data scientist)",
+        "testStrategy": "Transcription accuracy tests (>95% target), Model validation (r ≥ 0.70 with teacher ratings), Feature extraction unit tests, End-to-end inference pipeline tests",
+        "status": "pending",
+        "dependencies": [
+          1
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Google Cloud Speech-to-Text Integration",
+            "description": "Integrate GCP STT API for classroom audio transcription with >95% accuracy",
+            "details": "Implement audio upload to Cloud Storage, configure STT API with optimal settings, implement streaming and batch transcription, add confidence scoring and quality checks.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 2
+          },
+          {
+            "id": 2,
+            "title": "Linguistic Feature Extraction Pipeline",
+            "description": "Build NLP pipeline to extract empathy markers, problem-solving language, and other linguistic features from transcripts",
+            "details": "Implement LIWC category extraction, syntactic pattern analysis, discourse marker detection, sentiment analysis, word embeddings generation using Hugging Face Transformers.",
+            "status": "pending",
+            "dependencies": [
+              "2.1"
+            ],
+            "parentTaskId": 2
+          },
+          {
+            "id": 3,
+            "title": "Behavioral Feature Extraction",
+            "description": "Extract behavioral features from game telemetry including task completion, retry patterns, and collaboration indicators",
+            "details": "Aggregate telemetry events, calculate task efficiency metrics, extract persistence patterns, identify collaboration behaviors, compute distraction resistance scores.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 2
+          },
+          {
+            "id": 4,
+            "title": "XGBoost Model Training and Validation",
+            "description": "Train and validate XGBoost models for each non-academic skill with r ≥ 0.70 correlation to teacher ratings",
+            "details": "Prepare training data with human-coded ground truth (α ≥ 0.80), train separate models for empathy, adaptability, problem-solving, self-regulation, resilience, communication, collaboration. Validate against teacher ratings.",
+            "status": "pending",
+            "dependencies": [
+              "2.2",
+              "2.3"
+            ],
+            "parentTaskId": 2
+          },
+          {
+            "id": 5,
+            "title": "Evidence Extraction System",
+            "description": "Implement system to extract and rank supporting evidence from linguistic, behavioral, and contextual sources",
+            "details": "Select representative evidence from transcripts and telemetry, implement relevance ranking, add timestamp attribution, format evidence for display in dashboards.",
+            "status": "pending",
+            "dependencies": [
+              "2.4"
+            ],
+            "parentTaskId": 2
+          },
+          {
+            "id": 6,
+            "title": "Reasoning Generation with LLM",
+            "description": "Integrate OpenAI GPT-4 API to generate human-readable explanations for skill assessments",
+            "details": "Implement prompt templates for each skill, integrate GPT-4 API, generate 2-3 sentence explanations linking evidence to scores, add confidence estimates.",
+            "status": "pending",
+            "dependencies": [
+              "2.5"
+            ],
+            "parentTaskId": 2
+          },
+          {
+            "id": 7,
+            "title": "Model Monitoring and Alerting",
+            "description": "Set up monitoring for model performance, drift detection, and automated alerts",
+            "details": "Implement prediction logging, track accuracy metrics over time, detect model drift, set up alerts for performance degradation, create dashboards for ML ops.",
+            "status": "pending",
+            "dependencies": [
+              "2.4"
+            ],
+            "parentTaskId": 2
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3: Dashboards and Integration",
+        "description": "Build React-based teacher, administrator, and student dashboards with SIS integration, RBAC, reporting, and user management",
+        "details": "Deliverables: Teacher dashboard (React), Administrator dashboard (React), Student portal (React), SIS integration (OneRoster, Clever, ClassLink), Role-based access control, Reporting features, User management. Timeline: Weeks 17-24. Team: 4 engineers (2 frontend, 1 backend, 1 product)",
+        "testStrategy": "UI component tests, User acceptance testing with teachers, SIS integration tests, RBAC security tests, Dashboard performance tests (<2s load time)",
+        "status": "pending",
+        "dependencies": [
+          2
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Teacher Dashboard - Core Views",
+            "description": "Build React-based teacher dashboard with class overview, student list, and filtering capabilities",
+            "details": "Implement class overview with skill distribution, sortable/filterable student list, skill score visualizations, responsive design with <2s load time.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 3
+          },
+          {
+            "id": 2,
+            "title": "Teacher Dashboard - Student Detail Views",
+            "description": "Implement detailed student profile views with evidence, reasoning, trends, and alerts",
+            "details": "Create student detail page showing all skills with evidence excerpts, reasoning explanations, temporal trends, alerts for students needing support.",
+            "status": "pending",
+            "dependencies": [
+              "3.1"
+            ],
+            "parentTaskId": 3
+          },
+          {
+            "id": 3,
+            "title": "Administrator Dashboard",
+            "description": "Build school/district-level dashboard with aggregated metrics, trends, and equity analysis",
+            "details": "Implement school-wide skill distributions, trend analysis over time periods, demographic breakdowns for equity analysis, heatmaps, exportable reports.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 3
+          },
+          {
+            "id": 4,
+            "title": "Student Portal",
+            "description": "Create student-facing portal showing personal skill profile and progress",
+            "details": "Implement student skill visualization, growth-oriented feedback display, achievement tracking, accessible and age-appropriate design.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 3
+          },
+          {
+            "id": 5,
+            "title": "School Information System Integration",
+            "description": "Implement OneRoster, Clever, and ClassLink integrations with CSV fallback for roster synchronization",
+            "details": "Implement OneRoster API client, Clever integration, ClassLink integration, CSV import fallback, automated daily sync, data validation and error handling.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 3
+          },
+          {
+            "id": 6,
+            "title": "Role-Based Access Control Implementation",
+            "description": "Enforce RBAC across all dashboards with audit logging",
+            "details": "Implement role checking middleware, enforce data access restrictions (teachers see own students, admins see school/district), create audit logs for all data access.",
+            "status": "pending",
+            "dependencies": [
+              "3.1",
+              "3.3"
+            ],
+            "parentTaskId": 3
+          },
+          {
+            "id": 7,
+            "title": "Reporting and Export Features",
+            "description": "Implement report generation and data export in PDF and CSV formats",
+            "details": "Create report templates for different stakeholders, implement PDF generation, CSV export functionality, scheduled report generation capabilities.",
+            "status": "pending",
+            "dependencies": [
+              "3.2",
+              "3.3"
+            ],
+            "parentTaskId": 3
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4: Testing, Optimization, and Launch",
+        "description": "Comprehensive testing, performance optimization, security audit, pilot deployment, feedback integration, and launch preparation",
+        "details": "Deliverables: Comprehensive testing (unit, integration, end-to-end), Performance optimization, Security audit and hardening, Pilot with 1-2 schools, Feedback integration, Launch preparation, Documentation and training. Timeline: Weeks 25-32. Team: 3 engineers (1 QA, 1 DevOps, 1 backend), 1 product manager",
+        "testStrategy": "Test coverage >80%, Performance benchmarks met, Security audit pass, Pilot school validation, Educator acceptance survey (80% target)",
+        "status": "pending",
+        "dependencies": [
+          3
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Comprehensive Test Suite Development",
+            "description": "Build unit, integration, and end-to-end tests achieving >80% coverage",
+            "details": "Write unit tests for all components, integration tests for API endpoints and pipelines, end-to-end tests for user workflows, achieve >80% test coverage.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 2,
+            "title": "Performance Optimization",
+            "description": "Optimize system performance to meet latency and throughput requirements",
+            "details": "Profile and optimize slow queries, implement caching strategies, optimize ML inference latency, reduce dashboard load times, ensure API p95 <500ms.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 3,
+            "title": "Security Audit and Hardening",
+            "description": "Conduct comprehensive security audit and implement hardening measures for FERPA/COPPA compliance",
+            "details": "Perform security audit, fix vulnerabilities, ensure FERPA/COPPA compliance, implement encryption at rest and in transit, conduct penetration testing, achieve SOC 2 readiness.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 4,
+            "title": "Pilot School Onboarding and Deployment",
+            "description": "Deploy system to 1-2 pilot schools with full support and monitoring",
+            "details": "Select pilot schools, conduct onboarding and training, deploy system, provide ongoing support, monitor system performance and user feedback.",
+            "status": "pending",
+            "dependencies": [
+              "4.1",
+              "4.2",
+              "4.3"
+            ],
+            "parentTaskId": 4
+          },
+          {
+            "id": 5,
+            "title": "Pilot Feedback Collection and Integration",
+            "description": "Collect feedback from pilot schools and implement critical improvements",
+            "details": "Conduct teacher surveys (target 80% acceptance), collect student engagement data (target 85%), identify and fix critical issues, implement priority enhancements.",
+            "status": "pending",
+            "dependencies": [
+              "4.4"
+            ],
+            "parentTaskId": 4
+          },
+          {
+            "id": 6,
+            "title": "Validation Study Execution",
+            "description": "Conduct validation study to verify model accuracy, fairness, and reliability",
+            "details": "Execute convergent validity testing (r ≥ 0.70 with teacher ratings), test-retest reliability (r ≥ 0.75), equity analysis (no demographic disparities), responsiveness testing.",
+            "status": "pending",
+            "dependencies": [
+              "4.4"
+            ],
+            "parentTaskId": 4
+          },
+          {
+            "id": 7,
+            "title": "Documentation and Training Materials",
+            "description": "Create comprehensive documentation and training materials for all user types",
+            "details": "Write user guides for teachers, admins, students. Create video tutorials, develop training curriculum, prepare technical documentation, create FAQ and troubleshooting guides.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 8,
+            "title": "Launch Preparation and Go-Live",
+            "description": "Finalize launch preparations and execute go-live plan",
+            "details": "Complete launch checklist, execute production deployment, activate monitoring and alerting, conduct launch communication, provide launch support, monitor initial adoption.",
+            "status": "pending",
+            "dependencies": [
+              "4.5",
+              "4.6",
+              "4.7"
+            ],
+            "parentTaskId": 4
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Game-Based Assessment: Flourish Academy",
+        "description": "Develop the Unity-based narrative game for stealth assessment of non-academic skills with missions, telemetry, and engagement mechanics",
+        "details": "Components: Unity game client, Narrative-driven missions (empathy, adaptability, problem-solving, collaboration, resilience), Character development system, Telemetry logging, Think-aloud prompts, Adaptive difficulty, Accessibility features. Parallel development with other phases.",
+        "testStrategy": "Playtesting with students, Telemetry data validation, Student engagement survey (85% target), Accessibility compliance testing, Performance testing on target devices",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Unity Game Foundation and Architecture",
+            "description": "Set up Unity project, core architecture, and game systems framework",
+            "details": "Create Unity project with proper architecture patterns, implement core game systems (scene management, state management, save system), set up development pipeline and version control.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 5
+          },
+          {
+            "id": 2,
+            "title": "Narrative Design and Dialogue System",
+            "description": "Develop narrative framework, dialogue system, and story content for all acts",
+            "details": "Write narrative for Acts 1-3 plus epilogue, design character arcs, implement dialogue system with branching conversations, create relationship tracking system.",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 5
+          },
+          {
+            "id": 3,
+            "title": "Core Mission System Development",
+            "description": "Build mission system and implement the 5 core assessment missions",
+            "details": "Implement mission framework, create Mission 1 (Empathy), Mission 2 (Adaptability), Mission 3 (Problem-Solving), Mission 4 (Collaboration), Mission 5 (Resilience). Include choice consequences and skill assessment hooks.",
+            "status": "pending",
+            "dependencies": [
+              "5.1",
+              "5.2"
+            ],
+            "parentTaskId": 5
+          },
+          {
+            "id": 4,
+            "title": "Telemetry and Analytics System",
+            "description": "Implement comprehensive telemetry logging for all player interactions and decisions",
+            "details": "Create telemetry event schema, implement logging for choices, time spent, mistakes/recovery, collaboration indicators, distraction events. Integrate with backend telemetry pipeline.",
+            "status": "pending",
+            "dependencies": [
+              "5.1"
+            ],
+            "parentTaskId": 5
+          },
+          {
+            "id": 5,
+            "title": "Character System and NPC Interactions",
+            "description": "Develop character system, NPC behaviors, and relationship mechanics",
+            "details": "Create player character customization, implement NPC AI and behaviors, build relationship tracking system, design mentor and classmate characters with distinct personalities.",
+            "status": "pending",
+            "dependencies": [
+              "5.2"
+            ],
+            "parentTaskId": 5
+          },
+          {
+            "id": 6,
+            "title": "Think-Aloud and Metacognitive Prompts",
+            "description": "Implement think-aloud prompt system to capture metacognitive processes during gameplay",
+            "details": "Design contextual think-aloud prompts, implement prompt timing system, create text input interface, log responses with context for analysis.",
+            "status": "pending",
+            "dependencies": [
+              "5.3"
+            ],
+            "parentTaskId": 5
+          },
+          {
+            "id": 7,
+            "title": "Engagement and Progression Systems",
+            "description": "Implement achievement system, progression mechanics, and engagement features",
+            "details": "Create achievement badge system, implement world progression and unlocks, design meaningful choice feedback, build adaptive difficulty system to maintain engagement.",
+            "status": "pending",
+            "dependencies": [
+              "5.3"
+            ],
+            "parentTaskId": 5
+          },
+          {
+            "id": 8,
+            "title": "Accessibility Features Implementation",
+            "description": "Implement comprehensive accessibility features for inclusive gameplay",
+            "details": "Add multiple difficulty levels, implement text-to-speech for dialogue, ensure color-blind friendly design, add keyboard and controller support, implement adjustable text size, ensure WCAG 2.1 AA compliance.",
+            "status": "pending",
+            "dependencies": [
+              "5.1"
+            ],
+            "parentTaskId": 5
+          },
+          {
+            "id": 9,
+            "title": "Game Testing and Balancing",
+            "description": "Conduct playtesting with target audience and balance game mechanics",
+            "details": "Organize student playtesting sessions, collect engagement feedback (target 85%), validate telemetry data quality, balance mission difficulty, optimize game performance on target devices.",
+            "status": "pending",
+            "dependencies": [
+              "5.3",
+              "5.4",
+              "5.6",
+              "5.7",
+              "5.8"
+            ],
+            "parentTaskId": 5
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-11-12T06:31:05.563Z",
+      "description": "Default tasks context",
+      "updated": "2025-11-12T06:47:30.427Z"
+    }
+  }
+}

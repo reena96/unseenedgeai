@@ -227,10 +227,10 @@ This document outlines the complete strategy for implementing the 8 OpenSpec cha
 cd /Users/reena/gauntletai/unseenedgeai
 
 # Create worktree for infrastructure
-git worktree add ../mass-infrastructure feature/01-infrastructure-setup
+git worktree add ../unseenedgeai-infrastructure feature/01-infrastructure-setup
 
 # Work in the worktree
-cd ../mass-infrastructure
+cd ../unseenedgeai-infrastructure
 
 # Follow tasks from:
 cat openspec/changes/01-add-infrastructure-setup/tasks.md
@@ -269,14 +269,14 @@ git checkout main
 git pull origin main
 
 # Create 3 parallel worktrees
-git worktree add ../mass-auth feature/02-authentication-system
-git worktree add ../mass-stt feature/03-stt-pipeline
-git worktree add ../mass-telemetry feature/04-game-telemetry
+git worktree add ../unseenedgeai-auth feature/02-authentication-system
+git worktree add ../unseenedgeai-stt feature/03-stt-pipeline
+git worktree add ../unseenedgeai-telemetry feature/04-game-telemetry
 
 # Work in each worktree (can be done by different developers or sequentially)
 
 # Worktree A: Authentication
-cd ../mass-auth
+cd ../unseenedgeai-auth
 cat openspec/changes/02-add-authentication-system/tasks.md
 # ... develop authentication system ...
 git add . && git commit -m "feat: implement authentication system"
@@ -284,7 +284,7 @@ git push origin feature/02-authentication-system
 gh pr create --title "feat: Authentication System"
 
 # Worktree B: STT Pipeline
-cd ../mass-stt
+cd ../unseenedgeai-stt
 cat openspec/changes/03-add-stt-pipeline/tasks.md
 # ... develop STT pipeline ...
 git add . && git commit -m "feat: implement STT pipeline"
@@ -292,7 +292,7 @@ git push origin feature/03-stt-pipeline
 gh pr create --title "feat: Speech-to-Text Pipeline"
 
 # Worktree C: Game Telemetry
-cd ../mass-telemetry
+cd ../unseenedgeai-telemetry
 cat openspec/changes/04-add-game-telemetry-ingestion/tasks.md
 # ... develop game telemetry ...
 git add . && git commit -m "feat: implement game telemetry ingestion"
@@ -311,11 +311,11 @@ git checkout main
 git pull origin main
 
 # Create 2 parallel worktrees
-git worktree add ../mass-ml-inference feature/05-ml-inference
-git worktree add ../mass-gpt4 feature/07-gpt4-reasoning
+git worktree add ../unseenedgeai-ml-inference feature/05-ml-inference
+git worktree add ../unseenedgeai-gpt4 feature/07-gpt4-reasoning
 
 # Worktree A: ML Inference
-cd ../mass-ml-inference
+cd ../unseenedgeai-ml-inference
 cat openspec/changes/05-add-ml-inference-service/tasks.md
 # ... develop ML inference service ...
 git add . && git commit -m "feat: implement ML inference service"
@@ -323,7 +323,7 @@ git push origin feature/05-ml-inference
 gh pr create --title "feat: ML Inference Service"
 
 # Worktree B: GPT-4 Reasoning
-cd ../mass-gpt4
+cd ../unseenedgeai-gpt4
 cat openspec/changes/07-add-gpt4-reasoning/tasks.md
 # ... develop GPT-4 reasoning ...
 git add . && git commit -m "feat: implement GPT-4 reasoning generation"
@@ -342,11 +342,11 @@ git checkout main
 git pull origin main
 
 # Create 2 worktrees
-git worktree add ../mass-fusion feature/06-evidence-fusion
-git worktree add ../mass-dashboard feature/08-teacher-dashboard
+git worktree add ../unseenedgeai-fusion feature/06-evidence-fusion
+git worktree add ../unseenedgeai-dashboard feature/08-teacher-dashboard
 
 # Worktree A: Evidence Fusion
-cd ../mass-fusion
+cd ../unseenedgeai-fusion
 cat openspec/changes/06-add-evidence-fusion-service/tasks.md
 # ... develop evidence fusion ...
 git add . && git commit -m "feat: implement evidence fusion service"
@@ -355,7 +355,7 @@ gh pr create --title "feat: Evidence Fusion Service"
 # MERGE THIS FIRST
 
 # Worktree B: Teacher Dashboard
-cd ../mass-dashboard
+cd ../unseenedgeai-dashboard
 cat openspec/changes/08-add-teacher-dashboard/tasks.md
 # ... develop dashboard (can start UI early, but integration waits for fusion) ...
 git add . && git commit -m "feat: implement teacher dashboard"
@@ -371,7 +371,7 @@ gh pr create --title "feat: Teacher Dashboard"
 cd /Users/reena/gauntletai/unseenedgeai
 
 # Remove specific worktree
-git worktree remove ../mass-infrastructure
+git worktree remove ../unseenedgeai-infrastructure
 
 # List all worktrees
 git worktree list
@@ -529,7 +529,7 @@ Week 30                                        ████ Dashboard → MERGE 
 ### Scenario: Branch A merged while you're working on Branch B
 
 ```bash
-# You're in ../mass-stt (Branch B)
+# You're in ../unseenedgeai-stt (Branch B)
 # Meanwhile, feature/02-authentication-system (Branch A) merged to main
 
 # Fetch latest changes
@@ -581,8 +581,8 @@ git worktree add <path> <branch-name>
 git worktree remove <path>
 
 # Switch between worktrees (just use cd)
-cd ../mass-infrastructure
-cd ../mass-auth
+cd ../unseenedgeai-infrastructure
+cd ../unseenedgeai-auth
 
 # Update worktree from main
 git fetch origin
@@ -610,15 +610,16 @@ CHANGE_NAME=$(basename $CHANGE_DIR)
 # Get change title from proposal
 TITLE=$(head -1 $CHANGE_DIR/proposal.md | sed 's/# Change: //')
 
-# Create worktree
-WORKTREE_PATH="../mass-${CHANGE_NAME#*-}"
+# Create worktree with unseenedgeai prefix
+WORKTREE_PATH="../unseenedgeai-${CHANGE_NAME#*-}"
 BRANCH_NAME="feature/${CHANGE_NAME}"
 
 git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
 
-echo "Created worktree at: $WORKTREE_PATH"
-echo "Branch: $BRANCH_NAME"
-echo "Tasks: cat $CHANGE_DIR/tasks.md"
+echo "✅ Created worktree at: $WORKTREE_PATH"
+echo "📋 Branch: $BRANCH_NAME"
+echo "📝 Tasks: cat $CHANGE_DIR/tasks.md"
+cd "$WORKTREE_PATH"
 ```
 
 ---
@@ -642,8 +643,8 @@ This parallel git worktree strategy enables:
 
 1. **Start Wave 1**: Create infrastructure worktree
    ```bash
-   git worktree add ../mass-infrastructure feature/01-infrastructure-setup
-   cd ../mass-infrastructure
+   git worktree add ../unseenedgeai-infrastructure feature/01-infrastructure-setup
+   cd ../unseenedgeai-infrastructure
    cat openspec/changes/01-add-infrastructure-setup/tasks.md
    ```
 

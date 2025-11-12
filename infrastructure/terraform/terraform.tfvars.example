@@ -1,0 +1,5 @@
+# Terraform Variables - Copy to terraform.tfvars and update values
+
+project_id  = "unseenedgeai"
+region      = "us-central1"
+environment = "production"
