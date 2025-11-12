@@ -28,17 +28,17 @@ resource "google_monitoring_alert_policy" "db_connection_failures" {
   combiner     = "OR"
 
   conditions {
-    display_name = "High connection failure rate"
+    display_name = "High connection count"
 
     condition_threshold {
       filter          = "resource.type = \"cloudsql_database\" AND metric.type = \"cloudsql.googleapis.com/database/network/connections\""
       duration        = "300s" # 5 minutes
       comparison      = "COMPARISON_GT"
-      threshold_value = 10
+      threshold_value = 80
 
       aggregations {
         alignment_period   = "60s"
-        per_series_aligner = "ALIGN_RATE"
+        per_series_aligner = "ALIGN_MEAN"
       }
     }
   }
@@ -46,7 +46,7 @@ resource "google_monitoring_alert_policy" "db_connection_failures" {
   notification_channels = var.alert_email != "" ? [google_monitoring_notification_channel.email[0].id] : []
 
   documentation {
-    content   = "Cloud SQL is experiencing connection failures. Check database health and connectivity."
+    content   = "Cloud SQL is experiencing high connection count. Check database health and connectivity."
     mime_type = "text/markdown"
   }
 }

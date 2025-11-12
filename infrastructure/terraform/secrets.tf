@@ -40,14 +40,8 @@ resource "google_secret_manager_secret" "openai_api_key" {
   depends_on = [google_project_service.required_apis]
 }
 
-resource "google_secret_manager_secret_version" "openai_api_key" {
-  secret      = google_secret_manager_secret.openai_api_key.id
-  secret_data = "PLACEHOLDER_UPDATE_WITH_REAL_KEY" # User must update this
-
-  lifecycle {
-    ignore_changes = [secret_data] # Don't overwrite user updates
-  }
-}
+# Note: openai-api-key secret version already exists from previous setup
+# Users should update it manually with: gcloud secrets versions add openai-api-key --data-file=-
 
 # Sentry DSN (optional - placeholder)
 resource "google_secret_manager_secret" "sentry_dsn" {

@@ -62,7 +62,7 @@ resource "google_sql_database_instance" "mass_db" {
     ip_configuration {
       ipv4_enabled    = true
       private_network = null # Use public IP for Phase 1, VPC in Phase 2
-      require_ssl     = true
+      ssl_mode        = "ENCRYPTED_ONLY"
 
       # Authorized networks (empty for now, will use Cloud Run connector)
       dynamic "authorized_networks" {
@@ -80,10 +80,8 @@ resource "google_sql_database_instance" "mass_db" {
       value = "100"
     }
 
-    database_flags {
-      name  = "shared_preload_libraries"
-      value = "timescaledb" # Enable TimescaleDB extension
-    }
+    # Note: TimescaleDB extension will be installed via SQL after instance creation
+    # shared_preload_libraries flag is not supported in Cloud SQL managed PostgreSQL
 
     # Insights and monitoring
     insights_config {
