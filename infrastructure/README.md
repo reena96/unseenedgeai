@@ -1,211 +1,241 @@
-# MASS Infrastructure Setup
+# MASS Infrastructure - Wave 1
 
-This directory contains infrastructure configuration and setup scripts for the Middle School Non-Academic Skills Measurement System (MASS).
+This directory contains all infrastructure-as-code for the MASS system.
 
-## Overview
-
-The MASS system is deployed on Google Cloud Platform (GCP) with the following architecture:
+## 📁 Directory Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Google Cloud Platform                   │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
-│  │  Cloud Run   │───▶│  Cloud SQL   │    │Cloud Storage │  │
-│  │ (FastAPI)    │    │ (PostgreSQL) │    │ (Audio Files)│  │
-│  └──────────────┘    └──────────────┘    └──────────────┘  │
-│         │                     │                              │
-│         ▼                     ▼                              │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
-│  │   Celery     │    │    Redis     │    │Speech-to-Text│  │
-│  │  (Workers)   │───▶│ (Task Queue) │    │              │  │
-│  └──────────────┘    └──────────────┘    └──────────────┘  │
-│                                                               │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
-│  │  Vertex AI   │    │Secret Manager│    │  Monitoring  │  │
-│  │ (ML Models)  │    │ (API Keys)   │    │  & Logging   │  │
-│  └──────────────┘    └──────────────┘    └──────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+infrastructure/
+├── terraform/              # Terraform configuration files
+│   ├── main.tf            # Main Terraform config, provider setup
+│   ├── variables.tf       # Variable definitions
+│   ├── cloud-sql.tf       # PostgreSQL database
+│   ├── storage.tf         # Cloud Storage buckets
+│   ├── tasks-pubsub.tf    # Cloud Tasks + Pub/Sub
+│   ├── iam.tf             # Service accounts + permissions
+│   ├── secrets.tf         # Secret Manager
+│   ├── monitoring.tf      # Alerts + monitoring
+│   └── terraform.tfvars.example  # Example variables file
+├── scripts/               # Setup and deployment scripts
+│   └── setup-gcp.sh      # Main GCP setup script
+└── README.md             # This file
 ```
 
-## Prerequisites
+## 🚀 Quick Start
 
-1. **Google Cloud SDK**: Install from https://cloud.google.com/sdk/docs/install
-2. **GCP Project**: Create a project at https://console.cloud.google.com
-3. **Billing Account**: Link a billing account to your project
-4. **Project ID**: Note your project ID (set in `.env` as `GOOGLE_CLOUD_PROJECT`)
+See `../WHAT_YOU_NEED_TO_DO.md` for step-by-step instructions.
 
-## Setup Steps
-
-### 1. Initial GCP Project Setup
-
+**TL;DR:**
 ```bash
-# Set your project ID and region in .env file
-export GOOGLE_CLOUD_PROJECT="unseenedgeai"
-export GOOGLE_CLOUD_REGION="us-central1"
-export BILLING_ACCOUNT_ID="your-billing-account-id"
-
-# Run the GCP setup script
-cd infrastructure
-./gcp-setup.sh
+# 1. Enable billing in GCP Console
+# 2. Run setup script
+cd scripts
+./setup-gcp.sh
 ```
 
-This script will:
-- Enable all required GCP APIs
-- Create service accounts with appropriate IAM roles
-- Set up Cloud Storage buckets for audio files and artifacts
-- Create Secret Manager secrets (with placeholder values)
-- Generate service account keys for local development
+## 📋 What Gets Created
 
-### 2. Update Secret Manager
+### Compute & Databases
+- Cloud SQL PostgreSQL 15 instance (db-custom-2-7680)
+- TimescaleDB extension enabled
+- High availability mode
+- Automated daily backups
 
-After running `gcp-setup.sh`, update the secrets with actual values:
+### Storage
+- `unseenedgeai-audio-files` bucket (30-day lifecycle)
+- `unseenedgeai-ml-models` bucket (versioned)
 
+### Async Processing
+- `transcription-jobs` queue (10 concurrent)
+- `inference-jobs` queue (20 concurrent)
+- 4 Pub/Sub topics with subscriptions
+
+### Security
+- Service account: `mass-api@unseenedgeai.iam.gserviceaccount.com`
+- 4 secrets in Secret Manager:
+  - `db-password` (auto-generated)
+  - `jwt-secret-key` (auto-generated)
+  - `openai-api-key` (user must add)
+  - `sentry-dsn` (optional)
+
+### Monitoring
+- 6 alert policies (CPU, memory, errors, queues, storage)
+- Budget alerts at multiple thresholds
+- Email notifications (if configured)
+
+## 🔧 Terraform Commands
+
+### Initialize Terraform
 ```bash
-# Update API keys
-echo -n "your-anthropic-api-key" | gcloud secrets versions add anthropic-api-key --data-file=-
-echo -n "your-openai-api-key" | gcloud secrets versions add openai-api-key --data-file=-
-echo -n "your-perplexity-api-key" | gcloud secrets versions add perplexity-api-key --data-file=-
-
-# Update JWT secret (generate a secure random string)
-openssl rand -base64 32 | gcloud secrets versions add jwt-secret-key --data-file=-
-
-# Update database password (will be set during Cloud SQL setup)
-echo -n "your-secure-database-password" | gcloud secrets versions add database-password --data-file=-
+cd terraform
+terraform init
 ```
 
-### 3. Set Up Cloud SQL (PostgreSQL + TimescaleDB)
-
+### Plan changes
 ```bash
-./cloudsql-setup.sh
+terraform plan
 ```
 
-### 4. Set Up Redis
-
+### Apply changes
 ```bash
-./redis-setup.sh
+terraform apply
 ```
 
-### 5. Deploy FastAPI Application
-
+### Show current state
 ```bash
-./deploy-cloudrun.sh
+terraform show
 ```
 
-## Resource Configuration
-
-### Compute Resources
-
-- **Cloud Run**: Auto-scaling 0-100 instances
-  - CPU: 2 vCPU per instance
-  - Memory: 4 GB per instance
-  - Max concurrent requests: 80
-
-- **Cloud SQL**: High availability configuration
-  - Tier: db-n1-standard-2 (2 vCPU, 7.5 GB RAM)
-  - Storage: 100 GB SSD (auto-expanding)
-  - Backup: Automated daily backups
-
-- **Redis**: Managed Memory Store
-  - Tier: Standard (5 GB)
-  - High availability: Regional
-
-### Cost Estimates
-
-Based on usage for 1,000 students:
-
-| Service | Monthly Cost (est.) |
-|---------|---------------------|
-| Cloud Run | $150-300 |
-| Cloud SQL | $200-400 |
-| Cloud Storage | $50-100 |
-| Speech-to-Text | $400-800 |
-| Redis | $100-150 |
-| Vertex AI | $100-200 |
-| **Total** | **$1,000-1,950** |
-
-**Per student cost**: ~$1.00-2.00/month
-
-## Security
-
-### IAM Roles
-
-The application service account has the following roles:
-- `roles/cloudsql.client` - Database access
-- `roles/storage.objectAdmin` - Storage bucket access
-- `roles/speech.client` - Speech-to-Text API
-- `roles/aiplatform.user` - Vertex AI access
-- `roles/logging.logWriter` - Logging
-- `roles/monitoring.metricWriter` - Monitoring
-- `roles/secretmanager.secretAccessor` - Secrets access
-- `roles/redis.editor` - Redis access
-
-### Data Encryption
-
-- **At rest**: All data encrypted with Google-managed encryption keys
-- **In transit**: TLS 1.3 for all communications
-- **Secrets**: Stored in Secret Manager with automatic rotation support
-
-### Compliance
-
-- FERPA compliant data handling
-- COPPA compliant (parental consent required)
-- SOC 2 Type II ready (with proper audit logging)
-
-## Monitoring and Logging
-
-Access monitoring dashboards:
+### Destroy all resources (DANGER!)
 ```bash
-# View logs
-gcloud logging read "resource.type=cloud_run_revision" --limit 50
-
-# View metrics
-gcloud monitoring dashboards list
-
-# Set up alerts
-gcloud alpha monitoring policies create --notification-channels=<channel-id> \
-  --condition-threshold-value=0.95 \
-  --condition-threshold-duration=300s
+terraform destroy
 ```
 
-## Troubleshooting
+## 📝 Configuration
 
-### Service Account Permission Issues
+### Required Variables
+Edit `terraform/terraform.tfvars`:
 
+```hcl
+project_id = "unseenedgeai"
+region     = "us-central1"
+
+# IMPORTANT: Set this for alerts
+alert_email = "your-email@example.com"
+
+# Optional: Customize budget
+budget_amount = 1000
+```
+
+### Optional Variables
+See `terraform/variables.tf` for all available options:
+- Database tier, backup times
+- Cloud Run scaling limits
+- Queue concurrency
+- Storage retention
+- Feature flags
+
+## 🔒 Security
+
+### Service Account Permissions
+The `mass-api` service account has minimal required permissions:
+- `roles/cloudsql.client` - Connect to database
+- `roles/storage.objectAdmin` - Read/write storage
+- `roles/cloudtasks.enqueuer` - Create tasks
+- `roles/pubsub.publisher` - Publish messages
+- `roles/pubsub.subscriber` - Subscribe to topics
+- `roles/secretmanager.secretAccessor` - Read secrets
+- `roles/speech.client` - Use Speech-to-Text
+- `roles/logging.logWriter` - Write logs
+- `roles/monitoring.metricWriter` - Write metrics
+
+### Secrets Management
+- All secrets stored in Google Secret Manager
+- Encrypted at rest and in transit
+- Automatic secret rotation (configure manually)
+- IAM-based access control
+
+### Network Security
+- Cloud SQL uses SSL/TLS connections
+- Public IP with authorized networks (empty for Phase 1)
+- Will migrate to VPC in Phase 2
+
+## 💰 Cost Estimates
+
+| Service | Monthly Cost |
+|---------|-------------|
+| Cloud SQL (db-custom-2-7680) | ~$180 |
+| Cloud Storage (100 GB) | ~$10 |
+| Cloud Run (minimal usage) | ~$20-50 |
+| Cloud Tasks + Pub/Sub | ~$5 |
+| Cloud Logging | ~$5 |
+| **Total** | **~$250/month** |
+
+**Not included:**
+- Google Cloud Speech-to-Text: ~$10k for Phase 1 pilot
+- OpenAI GPT-4 API: ~$28/month for 100 students
+
+## 📊 Monitoring
+
+### Alert Policies
+1. **Database Connection Failures** - Alerts if >10 failures in 5 minutes
+2. **High CPU Usage** - Alerts if CPU >80% for 5 minutes
+3. **High Memory Usage** - Alerts if memory >90% for 5 minutes
+4. **Cloud Run Errors** - Alerts if error rate >5%
+5. **High Queue Depth** - Alerts if >100 tasks pending for 10 minutes
+6. **Storage Quota** - Alerts if bucket >100 GB
+
+### Budget Alerts
+- 50% of budget
+- 75% of budget
+- 90% of budget
+- 100% of budget
+- 120% of forecasted spend
+
+## 🧪 Testing
+
+### Verify Infrastructure
 ```bash
-# Verify service account has required roles
-gcloud projects get-iam-policy $GOOGLE_CLOUD_PROJECT \
-  --flatten="bindings[].members" \
-  --format="table(bindings.role)" \
-  --filter="bindings.members:serviceAccount:mass-app-service-account@*"
+# Check Cloud SQL instance
+gcloud sql instances describe unseenedgeai-db-production
+
+# List buckets
+gsutil ls
+
+# List secrets
+gcloud secrets list
+
+# Check service account
+gcloud iam service-accounts describe mass-api@unseenedgeai.iam.gserviceaccount.com
 ```
 
-### API Enablement Issues
-
+### Connect to Database
 ```bash
-# Verify APIs are enabled
-gcloud services list --enabled
+# Get connection name
+gcloud sql instances describe unseenedgeai-db-production --format='value(connectionName)'
+
+# Connect via cloud_sql_proxy
+cloud_sql_proxy -instances=CONNECTION_NAME=tcp:5432
 ```
 
-### Storage Access Issues
+## 🐛 Troubleshooting
 
+### Terraform state lock
 ```bash
-# Test bucket access
-gsutil ls gs://$GOOGLE_CLOUD_PROJECT-audio-files
+terraform force-unlock LOCK_ID
 ```
 
-## Cleanup
-
-To remove all resources (⚠️ DESTRUCTIVE):
-
+### API not enabled
 ```bash
-./cleanup.sh  # Creates a cleanup script that removes all resources
+gcloud services enable [api-name].googleapis.com --project=unseenedgeai
 ```
 
-## Support
+### Permission denied
+```bash
+# Ensure you have Owner or Editor role
+gcloud projects get-iam-policy unseenedgeai --flatten="bindings[].members" --filter="bindings.members:user:YOUR_EMAIL"
+```
 
-For issues or questions:
-1. Check GCP Console logs: https://console.cloud.google.com/logs
-2. Review Cloud Run logs: `gcloud run logs read <service-name>`
-3. Contact DevOps team for infrastructure issues
+### Budget not appearing
+- Budgets can take up to 24 hours to show in console
+- Check: https://console.cloud.google.com/billing/budgets
+
+## 📚 Documentation
+
+- [Google Cloud SQL](https://cloud.google.com/sql/docs)
+- [Terraform Google Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
+- [Cloud Tasks](https://cloud.google.com/tasks/docs)
+- [Pub/Sub](https://cloud.google.com/pubsub/docs)
+- [Secret Manager](https://cloud.google.com/secret-manager/docs)
+
+## ✅ Next Steps
+
+After Wave 1 is complete:
+1. ✅ Infrastructure provisioned
+2. 📋 Wave 2: Authentication System
+3. 📋 Wave 3: STT Pipeline + Game Telemetry
+4. 📋 Wave 4: ML Inference + Evidence Fusion
+5. 📋 Wave 5: GPT-4 Reasoning
+6. 📋 Wave 6: Teacher Dashboard
+
+See `../openspec/changes/` for detailed implementation tasks for each wave.
