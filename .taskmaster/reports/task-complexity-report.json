@@ -1,0 +1,117 @@
+{
+	"meta": {
+		"generatedAt": "2025-11-12T19:57:33.330Z",
+		"tasksAnalyzed": 13,
+		"totalTasks": 25,
+		"analysisCount": 13,
+		"thresholdScore": 7,
+		"projectName": "Task Master",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 18,
+			"taskTitle": "Rubric Development and Expert Coder Recruitment",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the task into subtasks for rubric development, coder recruitment, training, platform setup, and initial annotation.",
+			"reasoning": "This task involves developing detailed rubrics for multiple skills, recruiting and training expert coders, and setting up an annotation platform. Each component requires specialized knowledge and coordination, making it complex."
+		},
+		{
+			"taskId": 19,
+			"taskTitle": "First Annotation Sprint and IRR Achievement",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Divide the task into subtasks for annotation, IRR calculation, feature extraction, and rubric adjustments.",
+			"reasoning": "Achieving a high IRR across multiple skills and integrating feature extraction involves significant coordination and technical challenges, especially with dependencies on prior tasks."
+		},
+		{
+			"taskId": 20,
+			"taskTitle": "Full Annotation and Baseline Model Training",
+			"complexityScore": 10,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Create subtasks for annotation completion, model training, feature engineering, and validation.",
+			"reasoning": "This task requires extensive annotation work, advanced feature engineering, and training multiple models, each with its own complexity and dependencies."
+		},
+		{
+			"taskId": 21,
+			"taskTitle": "Game Telemetry Design and Synthetic Data Validation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Outline subtasks for telemetry design, synthetic data generation, feature extraction, and fusion model testing.",
+			"reasoning": "Designing telemetry and validating models with synthetic data involves technical challenges in data generation and model integration."
+		},
+		{
+			"taskId": 22,
+			"taskTitle": "Phase 0 Analysis and GO/NO-GO Decision",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the task into subtasks for analysis, report preparation, and decision-making criteria evaluation.",
+			"reasoning": "This task involves comprehensive analysis and decision-making based on multiple performance metrics, requiring detailed evaluation and external validation."
+		},
+		{
+			"taskId": 23,
+			"taskTitle": "Unity Game Foundation and Mission 1 Development",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Divide the task into subtasks for project setup, asset creation, dialogue system implementation, and testing.",
+			"reasoning": "Setting up a Unity project and developing a mission involves technical setup and creative design, with a focus on user experience and accessibility."
+		},
+		{
+			"taskId": 24,
+			"taskTitle": "Mission 2 Development - Group Project Challenge",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Create subtasks for environment setup, character creation, mini-game development, and telemetry integration.",
+			"reasoning": "Developing a mission with complex interactions and telemetry requires careful design and testing to ensure functionality and engagement."
+		},
+		{
+			"taskId": 25,
+			"taskTitle": "Mission 3 Development and Full Game Integration",
+			"complexityScore": 9,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Outline subtasks for mission development, integration, telemetry testing, and accessibility features.",
+			"reasoning": "Integrating multiple missions into a cohesive game involves significant technical and design challenges, especially with telemetry and accessibility requirements."
+		},
+		{
+			"taskId": 26,
+			"taskTitle": "React Frontend Foundation and Authentication UI",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the task into subtasks for project setup, UI development, authentication flow, and testing.",
+			"reasoning": "Setting up a React project with authentication involves technical setup and UI design, requiring attention to security and user experience."
+		},
+		{
+			"taskId": 27,
+			"taskTitle": "Administrator Dashboard Development",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Divide the task into subtasks for data visualization, trend analysis, equity analysis, and performance optimization.",
+			"reasoning": "Building a comprehensive dashboard with analytics and equity analysis involves complex data handling and visualization, requiring performance optimization."
+		},
+		{
+			"taskId": 28,
+			"taskTitle": "Student Portal Development",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Create subtasks for skill visualization, feedback design, achievement tracking, and accessibility testing.",
+			"reasoning": "Developing a student portal with visualization and feedback features involves design and technical challenges, especially with accessibility and privacy considerations."
+		},
+		{
+			"taskId": 29,
+			"taskTitle": "CI/CD Pipeline and Monitoring Setup",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Outline subtasks for CI/CD setup, monitoring configuration, and testing automation.",
+			"reasoning": "Setting up a CI/CD pipeline with comprehensive monitoring involves technical complexity in automation, deployment, and real-time monitoring."
+		},
+		{
+			"taskId": 30,
+			"taskTitle": "School Information System Integration",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the task into subtasks for API integration, CSV import, data validation, and sync testing.",
+			"reasoning": "Integrating multiple SIS systems involves handling diverse data formats and ensuring accurate synchronization, requiring robust validation and error handling."
+		}
+	]
+}

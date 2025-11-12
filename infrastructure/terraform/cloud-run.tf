@@ -114,6 +114,26 @@ resource "google_cloud_run_v2_service" "mass_api" {
         value = google_storage_bucket.ml_models.name
       }
 
+      env {
+        name  = "CELERY_BROKER_URL"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.redis_url.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name  = "CELERY_RESULT_BACKEND"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.redis_url.secret_id
+            version = "latest"
+          }
+        }
+      }
+
       # Health check configuration
       startup_probe {
         http_get {

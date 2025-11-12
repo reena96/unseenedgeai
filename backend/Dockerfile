@@ -24,18 +24,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
+# Create non-root user early
+RUN useradd -m -u 1000 mass
+
+# Copy Python dependencies from builder to mass user's home
+COPY --from=builder --chown=mass:mass /root/.local /home/mass/.local
 
 # Copy application code
-COPY ./app /app/app
+COPY --chown=mass:mass ./app /app/app
 
-# Add local bin to PATH
-ENV PATH=/root/.local/bin:$PATH
-
-# Create non-root user
-RUN useradd -m -u 1000 mass && chown -R mass:mass /app
+# Switch to non-root user
 USER mass
+
+# Add local bin to PATH for mass user
+ENV PATH=/home/mass/.local/bin:$PATH
 
 # Expose port
 EXPOSE 8080
