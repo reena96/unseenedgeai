@@ -2,483 +2,1413 @@
   "master": {
     "tasks": [
       {
-        "id": 1,
-        "title": "Phase 1: Foundation Infrastructure",
-        "description": "Build core infrastructure including GCP setup, FastAPI server, PostgreSQL/TimescaleDB, game telemetry pipeline, Celery task queue, authentication, and CI/CD",
-        "details": "Deliverables: GCP project setup, FastAPI server with basic endpoints, PostgreSQL and TimescaleDB setup, Game telemetry ingestion pipeline, Celery task queue, Basic authentication system, CI/CD pipeline. Timeline: Weeks 1-8. Team: 4 engineers (3 backend, 1 DevOps)",
-        "testStrategy": "Unit tests for API endpoints, integration tests for database operations, load tests for telemetry ingestion, CI/CD pipeline validation",
+        "id": 6,
+        "title": "Setup Google Cloud Infrastructure",
+        "description": "Deploy necessary infrastructure on Google Cloud Platform for MASS.",
+        "details": "Deploy Cloud Run for API server, Cloud SQL for database, Cloud Storage for audio files, Cloud Tasks for async job queue, and Cloud Pub/Sub for event streaming. Ensure multi-tenant architecture for isolated school data.",
+        "testStrategy": "Verify deployment by checking accessibility and connectivity of each service. Conduct load testing to ensure scalability and auto-scaling functionality.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Deploy Cloud Run for API Server",
+            "description": "Set up Cloud Run to host the API server for MASS.",
+            "dependencies": [],
+            "details": "Create a new Cloud Run service, configure it to auto-scale, and deploy the API server container. Ensure it supports multi-tenancy by isolating data per school.",
+            "status": "done",
+            "testStrategy": "Verify API accessibility and auto-scaling under load."
+          },
+          {
+            "id": 2,
+            "title": "Set Up Cloud SQL for Database",
+            "description": "Deploy Cloud SQL to manage the database for MASS.",
+            "dependencies": [],
+            "details": "Provision a Cloud SQL instance with PostgreSQL, configure it for high availability, and set up multi-tenant schemas for school data isolation.",
+            "status": "done",
+            "testStrategy": "Test database connectivity and performance under simulated load."
+          },
+          {
+            "id": 3,
+            "title": "Configure Cloud Storage for Audio Files",
+            "description": "Set up Cloud Storage buckets for storing audio files.",
+            "dependencies": [],
+            "details": "Create Cloud Storage buckets with appropriate permissions and lifecycle policies. Ensure data is organized by tenant for isolation.",
+            "status": "done",
+            "testStrategy": "Upload sample files and verify access permissions and retrieval speed."
+          },
+          {
+            "id": 4,
+            "title": "Implement Cloud Tasks for Async Job Queue",
+            "description": "Deploy Cloud Tasks to handle asynchronous job processing.",
+            "dependencies": [],
+            "details": "Set up Cloud Tasks queues, configure task handlers, and ensure tasks are processed in a multi-tenant aware manner.",
+            "status": "pending",
+            "testStrategy": "Test task creation and processing with various load scenarios."
+          },
+          {
+            "id": 5,
+            "title": "Deploy Cloud Pub/Sub for Event Streaming",
+            "description": "Set up Cloud Pub/Sub for real-time event streaming.",
+            "dependencies": [],
+            "details": "Create Pub/Sub topics and subscriptions, configure them for multi-tenant event isolation, and integrate with other services.",
+            "status": "pending",
+            "testStrategy": "Simulate event publishing and verify message delivery and processing."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement Database Schema",
+        "description": "Create the database schema using PostgreSQL with TimescaleDB extension.",
+        "details": "Design and implement tables for core entities, audio & transcription, game telemetry, projects, feature extraction, skill assessments, and evidence & reasoning. Ensure efficient time-series queries with TimescaleDB.",
+        "testStrategy": "Validate schema by running integration tests to ensure data integrity and performance under load.",
+        "priority": "high",
+        "dependencies": [
+          6
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Core Entity Tables",
+            "description": "Design tables for core entities in the database schema.",
+            "dependencies": [],
+            "details": "Identify core entities and define table structures, including primary keys, foreign keys, and relationships.",
+            "status": "done",
+            "testStrategy": "Review table designs with stakeholders to ensure completeness."
+          },
+          {
+            "id": 2,
+            "title": "Implement Time-Series Optimizations",
+            "description": "Optimize database schema for time-series data using TimescaleDB.",
+            "dependencies": [
+              1
+            ],
+            "details": "Utilize TimescaleDB features like hypertables and continuous aggregates to enhance query performance.",
+            "status": "done",
+            "testStrategy": "Benchmark query performance with sample data to ensure optimizations are effective."
+          },
+          {
+            "id": 3,
+            "title": "Design Tables for Audio & Transcription",
+            "description": "Create tables for storing audio and transcription data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define table structures for audio files and transcriptions, ensuring efficient storage and retrieval.",
+            "status": "done",
+            "testStrategy": "Test data insertion and retrieval to verify table design."
+          },
+          {
+            "id": 4,
+            "title": "Conduct Integration Tests",
+            "description": "Perform integration tests to validate the database schema.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Run tests to ensure data integrity, performance, and correct integration with other systems.",
+            "status": "done",
+            "testStrategy": "Use test scripts to simulate real-world scenarios and verify schema functionality."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Develop Authentication API",
+        "description": "Create authentication endpoints using FastAPI with OAuth 2.0 and JWT.",
+        "details": "Implement endpoints for login, refresh, and logout. Use OAuth 2.0 for secure authentication and JWT for session management.",
+        "testStrategy": "Perform security testing to ensure compliance with OAuth 2.0 standards. Conduct unit tests for each endpoint.",
+        "priority": "high",
+        "dependencies": [
+          6
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Integrate Google Cloud Speech-to-Text",
+        "description": "Implement audio transcription service using Google Cloud STT.",
+        "details": "Develop a service to upload audio files to Cloud Storage and process them using Google Cloud STT. Ensure transcription accuracy of over 75%.",
+        "testStrategy": "Test transcription accuracy with a variety of classroom audio samples. Measure processing time and verify output quality.",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Develop Feature Extraction Service",
+        "description": "Implement linguistic and behavioral feature extraction from transcripts and game telemetry.",
+        "details": "Use spaCy, LIWC, and custom patterns for linguistic features. Extract behavioral patterns from game telemetry. Store features in the database.",
+        "testStrategy": "Validate feature extraction accuracy by comparing extracted features against known benchmarks. Conduct unit tests for each extraction module.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Deploy ML Inference Models",
+        "description": "Deploy XGBoost models for skill inference based on extracted features.",
+        "details": "Train and deploy models for each of the 7 skills. Implement inference API to provide skill scores on a 0-1 scale.",
+        "testStrategy": "Evaluate model performance using correlation analysis with teacher ratings. Ensure inference latency is under 30 seconds per student.",
+        "priority": "medium",
+        "dependencies": [
+          10
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Train XGBoost Models for Skill Inference",
+            "description": "Train XGBoost models for each of the 7 skills using extracted features.",
+            "dependencies": [],
+            "details": "Use the extracted features dataset to train separate XGBoost models for each skill. Ensure models are optimized for accuracy and efficiency.",
+            "status": "pending",
+            "testStrategy": "Validate model accuracy using cross-validation and compare results with baseline models."
+          },
+          {
+            "id": 2,
+            "title": "Deploy Inference API for Skill Scoring",
+            "description": "Implement and deploy an API to provide skill scores on a 0-1 scale.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop an API using Flask or FastAPI to serve the trained models. Deploy the API on Google Cloud Run for scalability.",
+            "status": "pending",
+            "testStrategy": "Test API endpoints for correct skill score outputs and measure response times."
+          },
+          {
+            "id": 3,
+            "title": "Evaluate Model Performance",
+            "description": "Conduct performance evaluations of the deployed models against teacher ratings.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Perform correlation analysis between model predictions and teacher ratings to assess model performance. Adjust models if necessary.",
+            "status": "pending",
+            "testStrategy": "Use statistical methods to measure correlation and report findings."
+          },
+          {
+            "id": 4,
+            "title": "Monitor Inference Latency and Optimize",
+            "description": "Ensure inference latency is under 30 seconds per student and optimize if necessary.",
+            "dependencies": [
+              2
+            ],
+            "details": "Monitor the API's response times and optimize the code or infrastructure to maintain latency requirements.",
+            "status": "pending",
+            "testStrategy": "Conduct load testing and analyze latency metrics to ensure compliance with performance standards."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Implement Evidence Fusion Service",
+        "description": "Develop a service to combine evidence from multiple sources for skill inference.",
+        "details": "Normalize scores, apply skill-specific weights, and calculate weighted averages. Extract top evidence items and generate confidence scores.",
+        "testStrategy": "Test fusion accuracy by comparing with expected outcomes. Conduct integration tests to ensure correct evidence combination.",
+        "priority": "medium",
+        "dependencies": [
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Integrate GPT-4 for Reasoning Generation",
+        "description": "Use GPT-4 to generate reasoning for each skill inference.",
+        "details": "Implement a service to generate 2-3 sentence explanations for each skill score using GPT-4. Ensure reasoning is growth-oriented and actionable.",
+        "testStrategy": "Review generated reasoning for clarity and relevance. Conduct user testing with educators to ensure explanations are helpful.",
+        "priority": "medium",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Develop Game Telemetry Ingestion",
+        "description": "Create endpoints to ingest and process game telemetry data.",
+        "details": "Implement telemetry ingestion endpoints and process data to extract behavioral features. Store telemetry events in TimescaleDB hypertable.",
+        "testStrategy": "Simulate game sessions and verify telemetry data ingestion and processing accuracy. Conduct performance testing under load.",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Build Teacher Dashboard",
+        "description": "Develop a dashboard to provide evidence-based insights to teachers.",
+        "details": "Create a React-based dashboard with views for class and student insights. Include evidence viewer and skill assessment history.",
+        "testStrategy": "Conduct usability testing with educators to ensure dashboard functionality meets user needs. Perform load testing to ensure performance.",
+        "priority": "medium",
+        "dependencies": [
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Dashboard UI Components",
+            "description": "Create UI components for the teacher dashboard using React.",
+            "dependencies": [],
+            "details": "Develop reusable React components for the dashboard layout, including navigation, class insights, and student insights views.",
+            "status": "pending",
+            "testStrategy": "Conduct component rendering tests and UI responsiveness checks."
+          },
+          {
+            "id": 2,
+            "title": "Integrate Class Insights Data",
+            "description": "Connect the dashboard to backend services to fetch class insights data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use RESTful APIs to retrieve class insights data and display it in the dashboard. Ensure data is updated in real-time.",
+            "status": "pending",
+            "testStrategy": "Perform integration tests to verify data retrieval and display accuracy."
+          },
+          {
+            "id": 3,
+            "title": "Develop Evidence Viewer",
+            "description": "Implement a viewer for teachers to access evidence-based insights.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a component to display evidence data, including skill assessments and historical performance.",
+            "status": "pending",
+            "testStrategy": "Test the evidence viewer for correct data rendering and user interaction."
+          },
+          {
+            "id": 4,
+            "title": "Implement Skill Assessment History",
+            "description": "Add functionality to view historical skill assessments for students.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Develop a timeline or list view to show past skill assessments and progress over time.",
+            "status": "pending",
+            "testStrategy": "Verify historical data accuracy and timeline navigation functionality."
+          },
+          {
+            "id": 5,
+            "title": "Conduct Usability Testing with Educators",
+            "description": "Perform usability testing sessions with educators to gather feedback.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Organize testing sessions, observe user interactions, and collect feedback to improve dashboard usability.",
+            "status": "pending",
+            "testStrategy": "Analyze feedback and make necessary UI/UX adjustments based on educator input."
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Conduct Security and Compliance Audit",
+        "description": "Ensure system compliance with FERPA and COPPA regulations.",
+        "details": "Perform a comprehensive security audit, including penetration testing and compliance checks. Implement role-based access control and data encryption.",
+        "testStrategy": "Review audit logs and conduct security testing to verify compliance. Ensure all data access is logged and encrypted.",
+        "priority": "high",
+        "dependencies": [
+          8,
+          15
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Conduct Penetration Testing",
+            "description": "Perform penetration testing to identify vulnerabilities in the system.",
+            "dependencies": [],
+            "details": "Use automated tools and manual testing to identify security vulnerabilities. Focus on areas critical for FERPA and COPPA compliance.",
+            "status": "pending",
+            "testStrategy": "Verify all identified vulnerabilities are addressed."
+          },
+          {
+            "id": 2,
+            "title": "Perform Compliance Checks",
+            "description": "Ensure system compliance with FERPA and COPPA regulations.",
+            "dependencies": [
+              1
+            ],
+            "details": "Review system policies and procedures to ensure they meet FERPA and COPPA requirements. Document any gaps and propose solutions.",
+            "status": "pending",
+            "testStrategy": "Conduct a compliance audit and verify all requirements are met."
+          },
+          {
+            "id": 3,
+            "title": "Implement Role-Based Access Control (RBAC)",
+            "description": "Set up role-based access control to enhance security.",
+            "dependencies": [
+              2
+            ],
+            "details": "Define roles and permissions based on user needs. Implement RBAC in the system to restrict access to sensitive data.",
+            "status": "pending",
+            "testStrategy": "Test access controls to ensure only authorized users can access sensitive data."
+          },
+          {
+            "id": 4,
+            "title": "Implement Data Encryption",
+            "description": "Encrypt sensitive data to protect against unauthorized access.",
+            "dependencies": [
+              2
+            ],
+            "details": "Use industry-standard encryption methods to secure data at rest and in transit. Ensure encryption keys are managed securely.",
+            "status": "pending",
+            "testStrategy": "Verify data is encrypted and can only be decrypted by authorized users."
+          },
+          {
+            "id": 5,
+            "title": "Review and Document Audit Findings",
+            "description": "Compile and document findings from the security audit.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Create a comprehensive report detailing the audit process, findings, and any corrective actions taken.",
+            "status": "pending",
+            "testStrategy": "Review the report for completeness and accuracy. Ensure all findings are addressed."
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "title": "Pilot Execution and Feedback Collection",
+        "description": "Execute pilot with selected schools and collect feedback.",
+        "details": "Train teachers, deploy the system in pilot schools, and collect feedback through surveys and interviews. Analyze pilot data for system validation.",
+        "testStrategy": "Monitor system performance during the pilot. Collect and analyze feedback to identify areas for improvement.",
+        "priority": "medium",
+        "dependencies": [
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Rubric Development and Expert Coder Recruitment",
+        "description": "Develop validated rubrics for all 7 skills and recruit/train 4 expert coders for annotation work",
+        "details": "Week 1-2 deliverables: (1) 7 validated skill rubrics with 1-4 scale and behavioral anchors for empathy, adaptability, problem-solving, self-regulation, resilience, communication, collaboration. (2) 4 expert coders recruited from teacher networks and trained. (3) Annotation platform (Label Studio) setup on Cloud Run. (4) 50 practice transcripts annotated. (5) Initial IRR baseline calculated (expect ~0.50-0.60). Review rubrics with educational psychologist consultant.",
+        "testStrategy": "Baseline IRR ≥ 0.50, rubrics reviewed by external consultant, annotation platform functional with 50 practice annotations complete",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Validated Rubrics for 7 Skills",
+            "description": "Create detailed rubrics with a 1-4 scale and behavioral anchors for each of the 7 skills.",
+            "dependencies": [],
+            "details": "Work with educational psychologist to ensure rubrics are comprehensive and validated. Include empathy, adaptability, problem-solving, self-regulation, resilience, communication, and collaboration.",
+            "status": "pending",
+            "testStrategy": "Review by educational psychologist consultant."
+          },
+          {
+            "id": 2,
+            "title": "Recruit 4 Expert Coders",
+            "description": "Identify and recruit 4 expert coders from teacher networks for annotation work.",
+            "dependencies": [],
+            "details": "Utilize existing teacher networks and platforms to find qualified candidates. Ensure candidates have relevant experience in education and annotation.",
+            "status": "pending",
+            "testStrategy": "Verify recruitment through interviews and reference checks."
+          },
+          {
+            "id": 3,
+            "title": "Train Recruited Coders",
+            "description": "Conduct training sessions for the recruited coders to prepare them for annotation tasks.",
+            "dependencies": [
+              2
+            ],
+            "details": "Develop a training program that covers rubric understanding, annotation guidelines, and platform usage. Include practical exercises.",
+            "status": "pending",
+            "testStrategy": "Assess coder readiness through practice annotations and feedback sessions."
+          },
+          {
+            "id": 4,
+            "title": "Set Up Annotation Platform on Cloud Run",
+            "description": "Deploy and configure the Label Studio annotation platform on Cloud Run.",
+            "dependencies": [],
+            "details": "Ensure the platform is accessible, secure, and configured for the annotation tasks. Test with sample data to confirm functionality.",
+            "status": "pending",
+            "testStrategy": "Platform should be fully operational with test annotations completed successfully."
+          },
+          {
+            "id": 5,
+            "title": "Conduct Initial Annotation and Calculate IRR Baseline",
+            "description": "Annotate 50 practice transcripts and calculate the initial Inter-Rater Reliability (IRR) baseline.",
+            "dependencies": [
+              1,
+              3,
+              4
+            ],
+            "details": "Use the developed rubrics and trained coders to annotate transcripts. Calculate IRR to ensure it meets the expected baseline of 0.50-0.60.",
+            "status": "pending",
+            "testStrategy": "IRR should be ≥ 0.50; review discrepancies for further training."
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "title": "First Annotation Sprint and IRR Achievement",
+        "description": "Complete 900 dual-coded transcript segments and achieve IRR ≥ 0.75 (Krippendorff's Alpha)",
+        "details": "Week 3-6 deliverables: (1) 900 transcript segments dual-coded (300 in weeks 3-4, 600 in weeks 5-6). (2) IRR ≥ 0.75 achieved across all 7 skills. (3) Weekly sync meetings to discuss disagreements and edge cases. (4) Rubric adjustments documented based on disagreement patterns. (5) Feature extraction pipeline built using spaCy, VADER, LIWC. (6) Extract linguistic features from annotated segments. (7) Preliminary correlation analysis (target: r ≥ 0.30 between features and ground truth).",
+        "testStrategy": "IRR α ≥ 0.75 on all 7 skills, preliminary correlation r ≥ 0.30, <5% unusable segments, feature extraction pipeline functional",
+        "status": "pending",
+        "dependencies": [
+          18
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Annotate 300 Transcript Segments (Weeks 3-4)",
+            "description": "Complete the annotation of 300 transcript segments in the first two weeks.",
+            "dependencies": [],
+            "details": "Assign annotators to dual-code 300 segments, ensuring coverage of all 7 skills.",
+            "status": "pending",
+            "testStrategy": "Verify 300 segments are dual-coded and ready for IRR calculation."
+          },
+          {
+            "id": 2,
+            "title": "Annotate 600 Transcript Segments (Weeks 5-6)",
+            "description": "Complete the annotation of 600 transcript segments in the last two weeks.",
+            "dependencies": [
+              1
+            ],
+            "details": "Assign annotators to dual-code 600 segments, ensuring coverage of all 7 skills.",
+            "status": "pending",
+            "testStrategy": "Verify 600 segments are dual-coded and ready for IRR calculation."
+          },
+          {
+            "id": 3,
+            "title": "Calculate IRR for Annotated Segments",
+            "description": "Calculate Krippendorff's Alpha for all annotated segments to ensure IRR ≥ 0.75.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Use statistical software to calculate IRR for each skill across all segments.",
+            "status": "pending",
+            "testStrategy": "Confirm IRR ≥ 0.75 for all 7 skills."
+          },
+          {
+            "id": 4,
+            "title": "Conduct Weekly Sync Meetings",
+            "description": "Hold weekly meetings to discuss annotation disagreements and edge cases.",
+            "dependencies": [],
+            "details": "Schedule and conduct meetings to address annotation issues and update the rubric as needed.",
+            "status": "pending",
+            "testStrategy": "Document meeting outcomes and rubric adjustments."
+          },
+          {
+            "id": 5,
+            "title": "Build Feature Extraction Pipeline",
+            "description": "Develop a pipeline using spaCy, VADER, and LIWC for feature extraction.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement and test the pipeline to extract linguistic features from annotated segments.",
+            "status": "pending",
+            "testStrategy": "Ensure the pipeline extracts features correctly from sample segments."
+          },
+          {
+            "id": 6,
+            "title": "Perform Preliminary Correlation Analysis",
+            "description": "Analyze the correlation between extracted features and ground truth.",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "Use statistical methods to calculate correlation, targeting r ≥ 0.30.",
+            "status": "pending",
+            "testStrategy": "Verify correlation results meet the target r ≥ 0.30."
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "title": "Full Annotation and Baseline Model Training",
+        "description": "Complete 2,100 total annotated segments and train baseline ML models for all 7 skills",
+        "details": "Week 7-10 deliverables: (1) 2,100 total segments annotated (300 per skill minimum). (2) IRR maintained at α ≥ 0.75 through calibration meetings. (3) Advanced feature engineering: N-gram patterns, contextual embeddings (sentence-transformers), behavioral proxies. (4) 70/30 train/test split. (5) Train Logistic Regression baseline models (one per skill, interpretable). (6) Train XGBoost models (one per skill, higher accuracy). (7) Validate on held-out test set (target: r ≥ 0.40). (8) Document feature importance for each skill.",
+        "testStrategy": "All 2,100 segments coded, IRR α ≥ 0.75 maintained, model correlation r ≥ 0.40 on test set, ≥280 usable annotations per skill, feature importance documented",
+        "status": "pending",
+        "dependencies": [
+          19
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Complete Annotation of 2,100 Segments",
+            "description": "Annotate a total of 2,100 segments, ensuring a minimum of 300 per skill.",
+            "dependencies": [],
+            "details": "Distribute annotation tasks among team members to achieve 300 segments per skill. Ensure quality control through regular checks.",
+            "status": "pending",
+            "testStrategy": "Verify 2,100 segments are annotated with at least 300 per skill."
+          },
+          {
+            "id": 2,
+            "title": "Maintain IRR at α ≥ 0.75",
+            "description": "Conduct calibration meetings to maintain Inter-Rater Reliability (IRR) at α ≥ 0.75.",
+            "dependencies": [
+              1
+            ],
+            "details": "Schedule regular calibration meetings to discuss discrepancies and align on coding standards.",
+            "status": "pending",
+            "testStrategy": "Calculate IRR using Krippendorff's Alpha after each meeting."
+          },
+          {
+            "id": 3,
+            "title": "Advanced Feature Engineering",
+            "description": "Implement advanced feature engineering techniques such as N-gram patterns and contextual embeddings.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use tools like sentence-transformers for embeddings and develop behavioral proxies.",
+            "status": "pending",
+            "testStrategy": "Ensure features are correctly extracted and integrated into the dataset."
+          },
+          {
+            "id": 4,
+            "title": "Train Logistic Regression Models",
+            "description": "Train baseline Logistic Regression models for each of the 7 skills.",
+            "dependencies": [
+              3
+            ],
+            "details": "Use a 70/30 train/test split and focus on interpretability of models.",
+            "status": "pending",
+            "testStrategy": "Evaluate model performance on the test set, ensuring interpretability."
+          },
+          {
+            "id": 5,
+            "title": "Train XGBoost Models",
+            "description": "Train XGBoost models for each skill to achieve higher accuracy.",
+            "dependencies": [
+              4
+            ],
+            "details": "Optimize hyperparameters for each skill-specific model to improve accuracy.",
+            "status": "pending",
+            "testStrategy": "Compare model accuracy against baseline Logistic Regression models."
+          },
+          {
+            "id": 6,
+            "title": "Validate Models on Test Set",
+            "description": "Validate all models on a held-out test set, targeting a correlation of r ≥ 0.40.",
+            "dependencies": [
+              5
+            ],
+            "details": "Use the test set to validate model performance and ensure robustness.",
+            "status": "pending",
+            "testStrategy": "Calculate correlation r for each model on the test set."
+          },
+          {
+            "id": 7,
+            "title": "Document Feature Importance",
+            "description": "Document the feature importance for each skill-specific model.",
+            "dependencies": [
+              6
+            ],
+            "details": "Analyze and document which features contribute most to each model's predictions.",
+            "status": "pending",
+            "testStrategy": "Review feature importance documentation for completeness and clarity."
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Game Telemetry Design and Synthetic Data Validation",
+        "description": "Design game telemetry specification and validate multi-modal fusion model with synthetic data",
+        "details": "Week 11-12 deliverables: (1) Game telemetry specification document (event types, JSON schema) for 3 missions. (2) Map game choices to skill indicators (empathy choices, delegation patterns, persistence after failure, etc.). (3) Synthetic game data generator (Python script, 300 fake players with varied skill levels). (4) Extract behavioral features from synthetic game data (task completion rate, retry patterns, delegation fairness, persistence score). (5) Design multi-source fusion algorithm (transcript + game + teacher). (6) Test different weighting schemes. (7) Determine optimal skill-specific fusion weights. (8) Document fusion approach.",
+        "testStrategy": "Synthetic data generator produces valid events, behavioral features extracted correctly, fusion model combines sources with skill-specific weights, validation on synthetic data successful",
+        "status": "pending",
+        "dependencies": [
+          20
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Game Telemetry Specification Document",
+            "description": "Develop a detailed telemetry specification document for 3 game missions.",
+            "dependencies": [],
+            "details": "Define event types and JSON schema for each mission. Ensure coverage of all gameplay elements.",
+            "status": "pending",
+            "testStrategy": "Review document completeness and accuracy against game design requirements."
+          },
+          {
+            "id": 2,
+            "title": "Map Game Choices to Skill Indicators",
+            "description": "Identify and map game choices to relevant skill indicators.",
+            "dependencies": [
+              1
+            ],
+            "details": "Analyze game mechanics to map choices like empathy, delegation, and persistence to skill indicators.",
+            "status": "pending",
+            "testStrategy": "Validate mappings with game designers and psychologists."
+          },
+          {
+            "id": 3,
+            "title": "Develop Synthetic Game Data Generator",
+            "description": "Create a Python script to generate synthetic game data for 300 players.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Script should simulate varied skill levels and generate data according to the telemetry specification.",
+            "status": "pending",
+            "testStrategy": "Verify data generation accuracy and diversity through statistical analysis."
+          },
+          {
+            "id": 4,
+            "title": "Extract Behavioral Features from Synthetic Data",
+            "description": "Extract key behavioral features from the generated synthetic game data.",
+            "dependencies": [
+              3
+            ],
+            "details": "Focus on task completion rate, retry patterns, delegation fairness, and persistence score.",
+            "status": "pending",
+            "testStrategy": "Ensure feature extraction aligns with defined metrics and validate with sample data."
+          },
+          {
+            "id": 5,
+            "title": "Design and Test Multi-Source Fusion Algorithm",
+            "description": "Develop and test a fusion algorithm combining multiple data sources.",
+            "dependencies": [
+              4
+            ],
+            "details": "Design algorithm to integrate transcript, game, and teacher data. Test different weighting schemes for optimal results.",
+            "status": "pending",
+            "testStrategy": "Evaluate fusion accuracy using synthetic data and adjust weights for skill-specific optimization."
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "title": "Phase 0 Analysis and GO/NO-GO Decision",
+        "description": "Complete Phase 0 final report and make GO/NO-GO decision for Phase 1",
+        "details": "Week 13-14 deliverables: (1) Calculate Krippendorff's Alpha for each skill with confusion matrices. (2) Calculate correlation: features → ground truth (target: avg r ≥ 0.45). (3) Compute model performance metrics (MAE, RMSE). (4) Rank feature importance for each skill. (5) Document optimal fusion weights (transcript vs game vs teacher, per skill). (6) Design confidence scoring approach. (7) Design evidence extraction strategy. (8) External statistician validation review. (9) Phase 0 Final Report with GO/NO-GO recommendation. (10) If GO: Create detailed Phase 1 plan. DECISION GATE: MUST meet all GO criteria (IRR ≥0.75, correlation ≥0.45, <5% unusable, ≥280 per skill).",
+        "testStrategy": "All GO criteria met (IRR ≥0.75, avg correlation ≥0.45, <5% unusable segments, ≥280 annotations per skill), external validation confirms findings, Phase 0 report complete",
+        "status": "pending",
+        "dependencies": [
+          21
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Calculate Krippendorff's Alpha for Each Skill",
+            "description": "Compute Krippendorff's Alpha using confusion matrices for each skill.",
+            "dependencies": [],
+            "details": "Use existing confusion matrices to calculate Krippendorff's Alpha for each skill to ensure IRR ≥ 0.75.",
+            "status": "pending",
+            "testStrategy": "Verify IRR ≥ 0.75 for all skills."
+          },
+          {
+            "id": 2,
+            "title": "Calculate Feature Correlation with Ground Truth",
+            "description": "Analyze correlation between features and ground truth with a target average r ≥ 0.45.",
+            "dependencies": [],
+            "details": "Perform correlation analysis to ensure average correlation meets or exceeds 0.45.",
+            "status": "pending",
+            "testStrategy": "Check if average correlation r ≥ 0.45."
+          },
+          {
+            "id": 3,
+            "title": "Compute Model Performance Metrics",
+            "description": "Evaluate model performance using MAE and RMSE metrics.",
+            "dependencies": [],
+            "details": "Calculate Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) for model evaluation.",
+            "status": "pending",
+            "testStrategy": "Ensure metrics are within acceptable range."
+          },
+          {
+            "id": 4,
+            "title": "Rank Feature Importance for Each Skill",
+            "description": "Determine and rank the importance of features for each skill.",
+            "dependencies": [],
+            "details": "Use model outputs to rank feature importance for each skill.",
+            "status": "pending",
+            "testStrategy": "Validate ranking with model performance."
+          },
+          {
+            "id": 5,
+            "title": "Document Optimal Fusion Weights",
+            "description": "Identify and document optimal fusion weights for transcripts, games, and teacher inputs per skill.",
+            "dependencies": [],
+            "details": "Analyze data to determine optimal fusion weights and document findings.",
+            "status": "pending",
+            "testStrategy": "Review documentation for accuracy and completeness."
+          },
+          {
+            "id": 6,
+            "title": "Prepare Phase 0 Final Report and Decision",
+            "description": "Compile analysis results into the final report and make GO/NO-GO decision.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Integrate all analysis results into the Phase 0 final report and evaluate against GO criteria.",
+            "status": "pending",
+            "testStrategy": "Ensure report meets all GO criteria and is validated by an external statistician."
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "title": "Unity Game Foundation and Mission 1 Development",
+        "description": "Initialize Unity 2022.3 LTS project and develop Mission 1: Understanding Perspectives (Empathy)",
+        "details": "Week 17-20 deliverables: (1) Initialize Unity 2022.3 LTS project with Git LFS for assets. (2) Install core packages (Cinemachine, TextMeshPro, Input System). (3) Create project architecture (scene management, state management, save system). (4) Purchase Academy Courtyard environment from Unity Asset Store ($600). (5) Create Mentor Maya 3D model (low-poly, stylized, wise guide character). (6) Create Alex 2D sprite with 5 emotional states (happy, sad, anxious, isolated, hopeful). (7) Implement dialogue system with branching conversations. (8) Implement 5 choice points (empathetic vs self-focused responses). (9) Integrate telemetry: choice selection, time spent on dialogue, re-reading behavior, help-seeking. (10) Polish with lighting, sound effects, UI. (11) Add accessibility: adjustable text size, colorblind mode, keyboard navigation. (12) Test Mission 1 end-to-end (10-12 min playtime).",
+        "testStrategy": "Mission 1 playable in 10-12 minutes, all 5 choice points functional, telemetry events fire correctly, accessibility features tested, game builds on Windows/Mac",
+        "status": "pending",
+        "dependencies": [
+          22
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Mission 2 Development - Group Project Challenge",
+        "description": "Develop Mission 2: The Group Project Challenge (Collaboration + Problem-Solving)",
+        "details": "Week 21-24 deliverables: (1) Purchase Academy Classroom environment from Unity Asset Store ($800). (2) Create Jordan 2D sprite (confident, sometimes bossy character). (3) Create Sam 2D sprite (shy but helpful character). (4) Implement 7 choice points with branching outcomes. (5) Create resource allocation mini-game (allocate time, materials, team members). (6) Implement task delegation mechanics. (7) Integrate telemetry: task delegation patterns (fair vs autocratic), conflict resolution strategies, resource allocation decisions, planning approach (systematic vs random), turn-taking behaviors. (8) Polish and test Mission 2 (12-15 min playtime). (9) Ensure Mission 1 → Mission 2 transition works smoothly.",
+        "testStrategy": "Mission 2 playable in 12-15 minutes, all 7 choice points and mini-game functional, telemetry captures collaboration and problem-solving behaviors, smooth transition from Mission 1",
+        "status": "pending",
+        "dependencies": [
+          23
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Purchase Academy Classroom Environment",
+            "description": "Acquire the Academy Classroom environment from the Unity Asset Store.",
+            "dependencies": [],
+            "details": "Purchase the environment for $800 from the Unity Asset Store to use in Mission 2.",
+            "status": "pending",
+            "testStrategy": "Verify the environment is correctly imported and functional in Unity."
+          },
+          {
+            "id": 2,
+            "title": "Create Jordan 2D Sprite",
+            "description": "Design and implement the Jordan character sprite.",
+            "dependencies": [],
+            "details": "Develop a 2D sprite for Jordan, a confident and sometimes bossy character, using a graphic design tool.",
+            "status": "pending",
+            "testStrategy": "Ensure the sprite is visually consistent and animates correctly in Unity."
+          },
+          {
+            "id": 3,
+            "title": "Create Sam 2D Sprite",
+            "description": "Design and implement the Sam character sprite.",
+            "dependencies": [],
+            "details": "Develop a 2D sprite for Sam, a shy but helpful character, using a graphic design tool.",
+            "status": "pending",
+            "testStrategy": "Ensure the sprite is visually consistent and animates correctly in Unity."
+          },
+          {
+            "id": 4,
+            "title": "Develop Resource Allocation Mini-Game",
+            "description": "Create a mini-game for resource allocation within Mission 2.",
+            "dependencies": [],
+            "details": "Design and implement a mini-game where players allocate time, materials, and team members effectively.",
+            "status": "pending",
+            "testStrategy": "Test the mini-game for functionality and engagement, ensuring all resources can be allocated."
+          },
+          {
+            "id": 5,
+            "title": "Implement Task Delegation Mechanics",
+            "description": "Develop mechanics for task delegation in Mission 2.",
+            "dependencies": [],
+            "details": "Create systems that allow players to delegate tasks among team members, impacting game outcomes.",
+            "status": "pending",
+            "testStrategy": "Verify that task delegation affects game outcomes and is intuitive for players."
+          },
+          {
+            "id": 6,
+            "title": "Integrate Telemetry for Mission 2",
+            "description": "Add telemetry to track player behaviors in Mission 2.",
+            "dependencies": [],
+            "details": "Implement telemetry to capture data on task delegation patterns, conflict resolution strategies, and other player behaviors.",
+            "status": "pending",
+            "testStrategy": "Ensure telemetry accurately records and reports player behaviors for analysis."
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "title": "Mission 3 Development and Full Game Integration",
+        "description": "Develop Mission 3: The Unexpected Change (Adaptability + Resilience) and integrate all 3 missions into complete game",
+        "details": "Week 25-28 deliverables: MISSION 3: (1) Reuse classroom environment from Mission 2. (2) Design 6 choice points with setback scenarios (project requirements change, group member leaves). (3) Implement failure/retry mechanics. (4) Integrate telemetry: initial reaction to setback, strategy switching frequency, persistence after failure, emotional regulation timing, help-seeking patterns, time to recover. (5) Test Mission 3 (10-15 min). FULL GAME INTEGRATION: (6) Create opening tutorial (character creation, meet Mentor Maya). (7) Create mission select screen. (8) Create ending summary with encouragement and growth feedback. (9) Implement progress save/load system. (10) Add text-to-speech for accessibility. (11) Test full game playthrough (30-45 min total). (12) Build installers for Windows, Mac, Linux.",
+        "testStrategy": "Mission 3 playable in 10-15 minutes, full game completable in 30-45 minutes, all telemetry events work across 3 missions, save/load functional, accessibility features complete (WCAG 2.1 AA), installers build successfully",
+        "status": "pending",
+        "dependencies": [
+          24
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Reuse Classroom Environment from Mission 2",
+            "description": "Adapt the existing classroom environment from Mission 2 for use in Mission 3.",
+            "dependencies": [],
+            "details": "Utilize the assets and settings from Mission 2's classroom environment to maintain consistency and save development time.",
+            "status": "pending",
+            "testStrategy": "Ensure environment loads correctly in Mission 3."
+          },
+          {
+            "id": 2,
+            "title": "Design Choice Points with Setback Scenarios",
+            "description": "Create six choice points involving setbacks like project changes and team member departures.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop scenarios that challenge players' adaptability and resilience, incorporating branching narratives.",
+            "status": "pending",
+            "testStrategy": "Test each choice point for logical flow and impact on gameplay."
+          },
+          {
+            "id": 3,
+            "title": "Implement Failure/Retry Mechanics",
+            "description": "Develop mechanics that allow players to experience failure and retry scenarios.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create systems that track player failures and offer retry options, enhancing learning through iteration.",
+            "status": "pending",
+            "testStrategy": "Verify retry options function correctly and enhance player learning."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Telemetry for Player Behavior",
+            "description": "Add telemetry to track player reactions, strategy changes, and emotional regulation.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement data collection for key player behaviors to analyze adaptability and resilience.",
+            "status": "pending",
+            "testStrategy": "Ensure telemetry data is accurately captured and stored for analysis."
+          },
+          {
+            "id": 5,
+            "title": "Create Opening Tutorial and Mission Select Screen",
+            "description": "Develop the opening tutorial and mission selection interface for the game.",
+            "dependencies": [],
+            "details": "Design an engaging tutorial introducing characters and a user-friendly mission select screen.",
+            "status": "pending",
+            "testStrategy": "Test tutorial flow and mission selection for usability and engagement."
+          },
+          {
+            "id": 6,
+            "title": "Implement Progress Save/Load System",
+            "description": "Develop a system to save and load player progress across missions.",
+            "dependencies": [
+              5
+            ],
+            "details": "Ensure players can save their progress and resume from the same point seamlessly.",
+            "status": "pending",
+            "testStrategy": "Test save/load functionality across different game states and platforms."
+          },
+          {
+            "id": 7,
+            "title": "Add Text-to-Speech for Accessibility",
+            "description": "Integrate text-to-speech features to enhance game accessibility.",
+            "dependencies": [],
+            "details": "Implement text-to-speech for all game text to comply with accessibility standards.",
+            "status": "pending",
+            "testStrategy": "Verify text-to-speech functionality across all game text and ensure compliance with WCAG 2.1 AA."
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "title": "React Frontend Foundation and Authentication UI",
+        "description": "Initialize React project and build authentication UI foundation for all dashboards",
+        "details": "Week 17-20 deliverables: (1) Initialize React 18 + TypeScript project. (2) Set up component library (Material-UI or Chakra UI). (3) Configure API client (Axios with interceptors for auth tokens). (4) Set up routing (React Router v6). (5) Build login page with OAuth 2.0 flow. (6) Build authentication flow UI (login, logout, session management, token refresh). (7) Implement loading states and error handling. (8) Create reusable UI components (buttons, forms, cards, modals). (9) Set up global state management (Context API or Redux). (10) Implement responsive design foundation (mobile, tablet, desktop). (11) Set up testing framework (Jest + React Testing Library).",
+        "testStrategy": "Login flow works with backend OAuth 2.0, session management handles token refresh, responsive on mobile/tablet/desktop, component tests pass, error states display correctly",
+        "status": "pending",
+        "dependencies": [
+          8
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "Administrator Dashboard Development",
+        "description": "Build school-wide administrator dashboard with analytics, trends, and equity analysis",
+        "status": "pending",
+        "dependencies": [
+          15,
+          26
+        ],
+        "priority": "medium",
+        "details": "Week 29-32 deliverables: (1) School-wide skill distribution views (all 7 skills across all students). (2) Trend analysis over time periods (4-week, 12-week, semester views with line graphs). (3) Equity analysis: demographic breakdowns to identify disparities (by race, gender, socioeconomic status, special education status). (4) Heatmaps showing skill levels by grade/class. (5) Longitudinal graphs tracking cohort progress. (6) Identification of schools/grades needing support (alert system for low-performing groups). (7) Export functionality (PDF reports, CSV data export). (8) Custom report generation interface. (9) Usability testing with 2-3 administrators. (10) Performance optimization for large datasets (1000+ students). (11) Drill-down navigation capabilities for class and student-level details with breadcrumb navigation and RBAC integration.",
+        "testStrategy": "Administrator can view school-wide trends in <5 seconds, equity analysis identifies disparities correctly, reports export successfully in PDF/CSV, usability testing shows 75%+ find insights actionable, dashboard performs well with 1000+ students. Drill-down navigation maintains filter context and allows access to class/student details with evidence viewer and GPT-4 reasoning.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop School-wide Skill Distribution Views",
+            "description": "Create visualizations for skill distribution across all students.",
+            "dependencies": [],
+            "details": "Implement views for all 7 skills using bar charts and histograms to represent distribution.",
+            "status": "pending",
+            "testStrategy": "Verify visual accuracy with sample data."
+          },
+          {
+            "id": 2,
+            "title": "Implement Trend Analysis Over Time Periods",
+            "description": "Develop line graphs for trend analysis over specified time periods.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create line graphs for 4-week, 12-week, and semester views using historical data.",
+            "status": "pending",
+            "testStrategy": "Ensure trends match historical data patterns."
+          },
+          {
+            "id": 3,
+            "title": "Conduct Equity Analysis with Demographic Breakdowns",
+            "description": "Analyze data to identify disparities across demographics.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use demographic filters to break down data by race, gender, socioeconomic status, and special education status.",
+            "status": "pending",
+            "testStrategy": "Check for correct identification of disparities."
+          },
+          {
+            "id": 4,
+            "title": "Create Heatmaps for Skill Levels by Grade/Class",
+            "description": "Develop heatmaps to visualize skill levels across grades and classes.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement heatmaps using color gradients to show skill proficiency levels.",
+            "status": "pending",
+            "testStrategy": "Validate heatmap accuracy with test data."
+          },
+          {
+            "id": 5,
+            "title": "Develop Longitudinal Graphs for Cohort Progress",
+            "description": "Track and visualize cohort progress over time with longitudinal graphs.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create graphs to track progress of specific cohorts, highlighting growth and decline.",
+            "status": "pending",
+            "testStrategy": "Ensure graphs accurately reflect cohort data."
+          },
+          {
+            "id": 6,
+            "title": "Optimize Performance for Large Datasets",
+            "description": "Enhance dashboard performance to handle datasets of 1000+ students.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Implement data caching and efficient querying techniques to improve load times.",
+            "status": "pending",
+            "testStrategy": "Test dashboard performance with large datasets to ensure responsiveness."
+          },
+          {
+            "id": 7,
+            "title": "Implement Drill-down Navigation",
+            "description": "Add drill-down navigation to allow detailed views of classes and students.",
+            "dependencies": [
+              4
+            ],
+            "details": "Enable clicking on classrooms in heatmaps to view class-level details and on students to view individual details with evidence viewer and GPT-4 reasoning. Implement breadcrumb navigation and reuse teacher dashboard components from Task 15.",
+            "status": "pending",
+            "testStrategy": "Verify drill-down functionality maintains filter context and provides correct class/student details."
+          }
+        ]
+      },
+      {
+        "id": 28,
+        "title": "Student Portal Development",
+        "description": "Build student-facing portal with skill visualization, growth feedback, and achievements",
+        "details": "Week 29-32 deliverables: (1) Student skill visualization (radar chart or bar chart showing all 7 skills, age-appropriate design). (2) Growth-oriented feedback display (focus on improvement, not deficits). (3) Achievement tracking and badges (celebrate milestones like 'First skill improvement detected'). (4) Historical progress view (see how skills have grown over time). (5) Reflection prompts (optional journaling about skill development). (6) Accessible design (WCAG 2.1 AA compliance, screen reader compatible, high contrast mode). (7) Age-appropriate language (middle school reading level, positive framing). (8) Mobile-responsive design (students may access on phones/tablets). (9) Test with 10-15 students for engagement and comprehension. (10) Privacy-first design (students only see their own data).",
+        "testStrategy": "Students can understand their skill profile (85%+ comprehension in testing), growth-oriented language is encouraging, accessibility features work (screen reader, high contrast), mobile responsive, privacy enforced (students cannot see others' data)",
+        "status": "pending",
+        "dependencies": [
+          15,
+          26
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 29,
+        "title": "CI/CD Pipeline and Monitoring Setup",
+        "description": "Set up automated CI/CD pipeline and comprehensive monitoring for production deployment",
+        "details": "Week 15-16 deliverables: CI/CD PIPELINE: (1) Set up GitHub Actions workflows for automated testing. (2) Implement unit test automation (Pytest for backend, Jest for frontend). (3) Implement integration test automation. (4) Configure Docker builds for API server and workers. (5) Set up blue-green deployments to Cloud Run (zero downtime). (6) Implement automated rollback on deployment errors. (7) Configure secrets management (Google Secret Manager). (8) Set up staging and production environments. MONITORING: (9) Set up Google Cloud Logging with structured logs. (10) Configure Cloud Monitoring dashboards (API latency, error rates, system health). (11) Implement alerting for errors and performance issues (PagerDuty or email). (12) Set up error tracking (Sentry or Cloud Error Reporting). (13) Configure uptime monitoring (target: 95%+ uptime). (14) Set up cost monitoring and budget alerts.",
+        "testStrategy": "GitHub Actions deploys successfully to staging and production, automated tests run on every commit, rollback works when errors detected, monitoring dashboards show real-time metrics, alerts fire correctly for errors, uptime monitoring operational",
+        "status": "pending",
+        "dependencies": [
+          6
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set Up GitHub Actions Workflows",
+            "description": "Create workflows for automated testing using GitHub Actions.",
+            "dependencies": [],
+            "details": "Develop YAML files to define CI workflows for running tests on every commit.",
+            "status": "pending",
+            "testStrategy": "Ensure workflows trigger on push and pull requests."
+          },
+          {
+            "id": 2,
+            "title": "Implement Unit Test Automation",
+            "description": "Automate unit tests using Pytest for backend and Jest for frontend.",
+            "dependencies": [
+              1
+            ],
+            "details": "Configure test scripts and integrate them into the CI pipeline.",
+            "status": "pending",
+            "testStrategy": "Verify tests run successfully in CI environment."
+          },
+          {
+            "id": 3,
+            "title": "Configure Docker Builds",
+            "description": "Set up Docker builds for API server and workers.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create Dockerfiles and configure GitHub Actions to build images.",
+            "status": "pending",
+            "testStrategy": "Check successful image builds and push to registry."
+          },
+          {
+            "id": 4,
+            "title": "Set Up Blue-Green Deployments",
+            "description": "Implement blue-green deployments to Cloud Run for zero downtime.",
+            "dependencies": [
+              3
+            ],
+            "details": "Configure Cloud Run services to support blue-green deployment strategy.",
+            "status": "pending",
+            "testStrategy": "Deploy to staging and verify zero downtime during switch."
+          },
+          {
+            "id": 5,
+            "title": "Configure Google Cloud Monitoring Dashboards",
+            "description": "Set up dashboards for API latency, error rates, and system health.",
+            "dependencies": [],
+            "details": "Use Google Cloud Monitoring to create real-time dashboards.",
+            "status": "pending",
+            "testStrategy": "Dashboards display accurate real-time metrics."
+          },
+          {
+            "id": 6,
+            "title": "Implement Alerting for Errors and Performance Issues",
+            "description": "Set up alerting for errors and performance issues using PagerDuty or email.",
+            "dependencies": [
+              5
+            ],
+            "details": "Configure alerts in Google Cloud Monitoring for critical metrics.",
+            "status": "pending",
+            "testStrategy": "Test alerts by simulating errors and performance issues."
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "title": "School Information System Integration",
+        "description": "Implement SIS integrations (OneRoster, Clever, ClassLink) for automated roster synchronization",
+        "details": "Week 29-32 deliverables: (1) Implement OneRoster API v1.1 client for roster synchronization (students, teachers, classes, enrollments). (2) Implement Clever Secure Sync integration (OAuth 2.0, roster sync). (3) Implement ClassLink Roster Server integration. (4) Build CSV import fallback for schools without API access (upload CSV files with student/teacher/class data). (5) Implement automated daily roster sync (runs at 2am, updates student enrollments, teacher assignments, new students). (6) Add data validation and error handling (duplicate detection, missing required fields, invalid data types). (7) Create sync status dashboard for administrators (last sync time, success/failure, error details). (8) Test with sample school data from each SIS provider. (9) Handle edge cases: student transfers, teacher reassignments, class deletions, mid-year changes. (10) Implement audit logging for all roster changes.",
+        "testStrategy": "OneRoster sync completes in <5 minutes for 500 students, Clever and ClassLink integrations work with test accounts, CSV import handles 1000+ rows, 99% accuracy in roster synchronization, data validation catches errors, sync status dashboard shows real-time status, audit logs capture all changes",
+        "status": "pending",
+        "dependencies": [
+          15,
+          26
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement OneRoster API v1.1 Client",
+            "description": "Develop the client for OneRoster API v1.1 to synchronize rosters.",
+            "dependencies": [],
+            "details": "Create a client to interact with OneRoster API v1.1 for syncing students, teachers, classes, and enrollments.",
+            "status": "pending",
+            "testStrategy": "Verify sync completes in <5 minutes for 500 students."
+          },
+          {
+            "id": 2,
+            "title": "Develop Clever Secure Sync Integration",
+            "description": "Implement OAuth 2.0 and roster synchronization for Clever.",
+            "dependencies": [],
+            "details": "Set up OAuth 2.0 authentication and implement roster sync using Clever's API.",
+            "status": "pending",
+            "testStrategy": "Test integration with Clever test accounts."
+          },
+          {
+            "id": 3,
+            "title": "Integrate ClassLink Roster Server",
+            "description": "Implement integration with ClassLink Roster Server for roster synchronization.",
+            "dependencies": [],
+            "details": "Develop the integration to sync rosters using ClassLink's Roster Server API.",
+            "status": "pending",
+            "testStrategy": "Ensure integration works with ClassLink test accounts."
+          },
+          {
+            "id": 4,
+            "title": "Build CSV Import Fallback",
+            "description": "Create a CSV import system for schools without API access.",
+            "dependencies": [],
+            "details": "Develop a system to upload CSV files containing student, teacher, and class data for synchronization.",
+            "status": "pending",
+            "testStrategy": "Test CSV import with files containing 1000+ rows."
+          },
+          {
+            "id": 5,
+            "title": "Implement Data Validation and Error Handling",
+            "description": "Add validation and error handling for data synchronization.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Implement checks for duplicates, missing fields, and invalid data types during sync.",
+            "status": "pending",
+            "testStrategy": "Ensure data validation catches errors and logs them appropriately."
+          },
+          {
+            "id": 6,
+            "title": "Conduct Sync Testing with Sample Data",
+            "description": "Test synchronization with sample data from each SIS provider.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Use sample school data to test sync processes and handle edge cases like transfers and reassignments.",
+            "status": "pending",
+            "testStrategy": "Verify 99% accuracy in roster synchronization and handle edge cases effectively."
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "title": "Local Development Environment Setup and Verification",
+        "description": "Configure and verify the local development environment for FastAPI application development. Address blockers identified during validation.",
+        "status": "pending",
+        "dependencies": [
+          8,
+          29
+        ],
+        "priority": "high",
+        "details": "1. Create a Python virtual environment in the /backend directory using venv or virtualenv.\n2. Install all necessary dependencies listed in the requirements.txt file (47 dependencies).\n3. Configure environment variables in the .env file, ensuring all required secrets (SECRET_KEY, JWT_SECRET_KEY, DATABASE_URL, REDIS_URL, CELERY_BROKER_URL) are included.\n4. Set up pre-commit hooks to ensure code quality and style compliance.\n5. Start the FastAPI server using uvicorn to verify the application runs without errors.\n6. Document the setup process in the README.md for future reference.",
+        "testStrategy": "1. Verify that the virtual environment activates correctly and dependencies are installed without errors.\n2. Ensure that uvicorn starts the FastAPI application successfully and the server is accessible at the specified localhost URL.\n3. Check that pre-commit hooks trigger on git commit and pass all checks.\n4. Confirm that environment variables are loaded correctly by the application, especially the required secrets.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Virtual Environment",
+            "description": "Set up a Python virtual environment in the /backend directory.",
+            "dependencies": [],
+            "details": "Use venv or virtualenv to create the environment.",
+            "status": "pending",
+            "testStrategy": "Ensure the virtual environment is created and can be activated."
+          },
+          {
+            "id": 2,
+            "title": "Install Dependencies",
+            "description": "Install all necessary dependencies from requirements.txt.",
+            "dependencies": [
+              1
+            ],
+            "details": "Run pip install -r requirements.txt in the virtual environment.",
+            "status": "pending",
+            "testStrategy": "Verify all 47 dependencies are installed without errors."
+          },
+          {
+            "id": 3,
+            "title": "Configure Environment Variables",
+            "description": "Set up the .env file with all required secrets.",
+            "dependencies": [],
+            "details": "Ensure .env includes SECRET_KEY, JWT_SECRET_KEY, DATABASE_URL, REDIS_URL, CELERY_BROKER_URL.",
+            "status": "pending",
+            "testStrategy": "Confirm application loads environment variables correctly."
+          },
+          {
+            "id": 4,
+            "title": "Set Up Pre-commit Hooks",
+            "description": "Implement pre-commit hooks for code quality.",
+            "dependencies": [],
+            "details": "Configure hooks to run on git commit.",
+            "status": "pending",
+            "testStrategy": "Check hooks trigger and pass all checks on commit."
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "title": "Local Database Setup with PostgreSQL and TimescaleDB",
+        "description": "Set up a local PostgreSQL database with TimescaleDB extension, configure Alembic migrations, and ensure connectivity from the FastAPI application. Address critical blocker by installing PostgreSQL and TimescaleDB, and generate initial Alembic migration from models.",
+        "status": "pending",
+        "dependencies": [
+          7,
+          31
+        ],
+        "priority": "high",
+        "details": "1. Install PostgreSQL and TimescaleDB on the local machine.\n2. Create a new database instance named 'mass_db' and enable the TimescaleDB extension.\n3. Configure Alembic with alembic.ini and generate initial migration from models.\n4. Run 'alembic upgrade head' to apply the migration.\n5. Verify database connectivity by integrating with the FastAPI application and ensuring data can be read and written correctly.",
+        "testStrategy": "1. Ensure PostgreSQL and TimescaleDB are installed and 'psql' command is available.\n2. Run Alembic migrations to ensure all tables are created as per the schema.\n3. Insert and retrieve test data to verify database operations.\n4. Test connectivity from the FastAPI application by performing CRUD operations.\n5. Validate TimescaleDB extension functionality by executing time-series queries.\n6. Ensure no errors occur during database setup and application integration.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install PostgreSQL and TimescaleDB",
+            "description": "Install PostgreSQL and TimescaleDB on the local machine to resolve the critical blocker.",
+            "dependencies": [],
+            "details": "Ensure 'psql' command is available after installation.",
+            "status": "pending",
+            "testStrategy": "Verify installation by running 'psql --version'."
+          },
+          {
+            "id": 2,
+            "title": "Generate Initial Alembic Migration",
+            "description": "Create initial Alembic migration from models.",
+            "dependencies": [],
+            "details": "Use Alembic to generate migration scripts based on current models.",
+            "status": "pending",
+            "testStrategy": "Check that migration scripts are created in the /alembic/versions/ directory."
+          }
+        ]
+      },
+      {
+        "id": 33,
+        "title": "Core API Foundation and Testing Framework",
+        "description": "Verify FastAPI application structure, health endpoints, OpenAPI documentation, pytest configuration, middleware functionality, and CORS configuration.",
+        "details": "1. Review the FastAPI application structure to ensure it follows best practices for scalability and maintainability.\n2. Implement health check endpoints to monitor application status.\n3. Ensure OpenAPI documentation is accessible and accurately reflects the API endpoints.\n4. Configure pytest for automated testing, including unit and integration tests.\n5. Implement middleware for logging, error handling, and request ID tracking.\n6. Configure CORS to allow requests from authorized domains only.\n7. Conduct basic integration tests to verify the functionality of all components.",
+        "testStrategy": "1. Run pytest to ensure all tests pass without errors.\n2. Access health endpoints and verify they return the correct status.\n3. Check OpenAPI documentation for accuracy and accessibility.\n4. Test middleware by simulating requests and verifying logs and error handling.\n5. Validate CORS configuration by attempting cross-origin requests from various domains.\n6. Conduct integration tests to ensure all components work together seamlessly.",
+        "status": "pending",
+        "dependencies": [
+          31,
+          32
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 34,
+        "title": "Authentication System Local Testing and Validation",
+        "description": "Conduct comprehensive local testing of the authentication system, including JWT token generation and role-based access control.",
+        "details": "1. Set up a local testing environment using the configured PostgreSQL database from Task 32.\n2. Create test users with various roles in the local database to validate role-based access control (RBAC).\n3. Test JWT token generation and ensure tokens are correctly issued and validated.\n4. Verify the functionality of the login endpoint by simulating login attempts with valid and invalid credentials.\n5. Test the token refresh mechanism to ensure tokens can be refreshed correctly without re-authentication.\n6. Validate protected endpoint authentication by attempting access with and without valid tokens.\n7. Document all test cases and results for future reference.",
+        "testStrategy": "1. Use automated test scripts to simulate login and token refresh scenarios.\n2. Verify JWT tokens are correctly generated and decoded using online JWT tools.\n3. Conduct manual testing of RBAC by attempting to access restricted endpoints with different user roles.\n4. Ensure all endpoints return appropriate HTTP status codes for success and failure cases.\n5. Review logs to confirm that authentication and authorization processes are functioning as expected.",
+        "status": "pending",
+        "dependencies": [
+          8,
+          32
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": "35",
+        "title": "GCP Project Setup and Infrastructure Prerequisites",
+        "description": "Set up a Google Cloud Platform project with necessary infrastructure and configurations for development.",
         "status": "in-progress",
-        "dependencies": [],
-        "priority": "high",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "GCP Project Setup and Configuration",
-            "description": "Set up GCP project, configure regions, enable required APIs, set up IAM roles and service accounts",
-            "details": "Enable Cloud Run, Cloud SQL, Cloud Storage, Cloud Speech-to-Text, Vertex AI APIs. Configure IAM roles for service accounts. Set up billing and quotas.",
-            "status": "done",
-            "dependencies": [],
-            "parentTaskId": 1
-          },
-          {
-            "id": 2,
-            "title": "FastAPI Server Foundation",
-            "description": "Create FastAPI application structure with basic endpoints, middleware, error handling, and documentation",
-            "details": "Set up FastAPI project structure, implement authentication endpoints, telemetry endpoints, health check endpoints. Configure CORS, logging, and OpenAPI documentation.",
-            "status": "done",
-            "dependencies": [
-              "1.1"
-            ],
-            "parentTaskId": 1
-          },
-          {
-            "id": 3,
-            "title": "PostgreSQL and TimescaleDB Setup",
-            "description": "Deploy Cloud SQL PostgreSQL with TimescaleDB extension, design schema, and implement database models",
-            "details": "Set up Cloud SQL instance with high availability, install TimescaleDB extension, create database schema for students, teachers, telemetry, transcripts, assessments. Implement SQLAlchemy models.",
-            "status": "done",
-            "dependencies": [
-              "1.1"
-            ],
-            "parentTaskId": 1
-          },
-          {
-            "id": 4,
-            "title": "Game Telemetry Ingestion Pipeline",
-            "description": "Implement Kafka event streaming for game telemetry with batch and streaming processing capabilities",
-            "details": "Set up Kafka cluster, implement telemetry event schema, create producers/consumers, implement batching logic, add data validation and error handling.",
-            "status": "pending",
-            "dependencies": [
-              "1.2",
-              "1.3"
-            ],
-            "parentTaskId": 1
-          },
-          {
-            "id": 5,
-            "title": "Celery Task Queue Setup",
-            "description": "Configure Celery with Redis for async task processing including transcription, analysis, and inference jobs",
-            "details": "Set up Redis instance, configure Celery workers, implement task definitions for STT, linguistic analysis, skill inference. Add monitoring and retry logic.",
-            "status": "pending",
-            "dependencies": [
-              "1.2",
-              "1.3"
-            ],
-            "parentTaskId": 1
-          },
-          {
-            "id": 6,
-            "title": "Authentication and Authorization System",
-            "description": "Implement OAuth 2.0 with JWT tokens and role-based access control",
-            "details": "Set up OAuth 2.0 flow, implement JWT token generation/validation, create user roles (teacher, admin, student, counselor), implement RBAC middleware, add audit logging.",
-            "status": "pending",
-            "dependencies": [
-              "1.2",
-              "1.3"
-            ],
-            "parentTaskId": 1
-          },
-          {
-            "id": 7,
-            "title": "CI/CD Pipeline Implementation",
-            "description": "Set up GitHub Actions for automated testing, building, and deployment to GCP Cloud Run",
-            "details": "Create GitHub Actions workflows, implement automated testing, configure Docker builds, set up blue-green deployments, implement automated rollback on errors.",
-            "status": "pending",
-            "dependencies": [
-              "1.2"
-            ],
-            "parentTaskId": 1
-          }
-        ]
-      },
-      {
-        "id": 2,
-        "title": "Phase 2: NLP and Skill Inference",
-        "description": "Implement speech-to-text, linguistic analysis, behavioral feature extraction, XGBoost model training, evidence extraction, and reasoning generation",
-        "details": "Deliverables: Google Cloud STT integration, Linguistic analysis pipeline, Behavioral feature extraction, XGBoost model training and validation, Evidence extraction system, Reasoning generation (LLM integration), Model monitoring and alerting. Timeline: Weeks 9-16. Team: 4 engineers (2 ML, 1 backend, 1 data scientist)",
-        "testStrategy": "Transcription accuracy tests (>95% target), Model validation (r ≥ 0.70 with teacher ratings), Feature extraction unit tests, End-to-end inference pipeline tests",
-        "status": "pending",
         "dependencies": [
-          1
+          6,
+          31
         ],
         "priority": "high",
+        "details": "1. Verify billing is enabled for the existing GCP project 'unseenedgeai'.\n2. Ensure gcloud CLI is authenticated.\n3. Enable over 10 required APIs including Cloud Run, Cloud SQL, Cloud Storage, Cloud Tasks, Pub/Sub, and Secret Manager.\n4. Create a 'mass-api' service account with appropriate IAM roles for managing resources.\n5. Set up Secret Manager and store 'jwt-secret' and 'db-password'.\n6. Run 'terraform init' in the '/infrastructure/terraform' directory.\n7. Configure GitHub Actions secrets for CI/CD workflows to interact with GCP.",
+        "testStrategy": "1. Verify billing status through the GCP console.\n2. Check the enabled APIs through the GCP console to ensure they are active.\n3. Validate the service account permissions by attempting to access resources it should manage.\n4. Access Secret Manager and retrieve stored secrets to ensure they are correctly configured.\n5. Run Terraform plan and apply commands to ensure infrastructure can be managed as code.\n6. Trigger a GitHub Actions workflow to verify CI/CD integration with GCP.",
         "subtasks": [
           {
             "id": 1,
-            "title": "Google Cloud Speech-to-Text Integration",
-            "description": "Integrate GCP STT API for classroom audio transcription with >95% accuracy",
-            "details": "Implement audio upload to Cloud Storage, configure STT API with optimal settings, implement streaming and batch transcription, add confidence scoring and quality checks.",
-            "status": "pending",
+            "title": "Verify Billing Enabled",
+            "description": "Ensure billing is enabled for the GCP project 'unseenedgeai'.",
             "dependencies": [],
-            "parentTaskId": 2
+            "details": "Check the billing section in the GCP console.",
+            "status": "pending",
+            "testStrategy": "Verify billing status through the GCP console."
           },
           {
             "id": 2,
-            "title": "Linguistic Feature Extraction Pipeline",
-            "description": "Build NLP pipeline to extract empathy markers, problem-solving language, and other linguistic features from transcripts",
-            "details": "Implement LIWC category extraction, syntactic pattern analysis, discourse marker detection, sentiment analysis, word embeddings generation using Hugging Face Transformers.",
+            "title": "Enable Required APIs",
+            "description": "Enable necessary APIs for the project.",
+            "dependencies": [],
+            "details": "Enable APIs such as Cloud Run, Cloud SQL, Cloud Storage, Cloud Tasks, Pub/Sub, and Secret Manager.",
             "status": "pending",
-            "dependencies": [
-              "2.1"
-            ],
-            "parentTaskId": 2
+            "testStrategy": "Check the enabled APIs through the GCP console to ensure they are active."
           },
           {
             "id": 3,
-            "title": "Behavioral Feature Extraction",
-            "description": "Extract behavioral features from game telemetry including task completion, retry patterns, and collaboration indicators",
-            "details": "Aggregate telemetry events, calculate task efficiency metrics, extract persistence patterns, identify collaboration behaviors, compute distraction resistance scores.",
-            "status": "pending",
+            "title": "Create 'mass-api' Service Account",
+            "description": "Create a service account with appropriate IAM roles.",
             "dependencies": [],
-            "parentTaskId": 2
+            "details": "Create 'mass-api' service account and assign necessary roles.",
+            "status": "pending",
+            "testStrategy": "Validate the service account permissions by attempting to access resources it should manage."
           },
           {
             "id": 4,
-            "title": "XGBoost Model Training and Validation",
-            "description": "Train and validate XGBoost models for each non-academic skill with r ≥ 0.70 correlation to teacher ratings",
-            "details": "Prepare training data with human-coded ground truth (α ≥ 0.80), train separate models for empathy, adaptability, problem-solving, self-regulation, resilience, communication, collaboration. Validate against teacher ratings.",
+            "title": "Setup Secret Manager",
+            "description": "Store initial secrets needed for the application.",
+            "dependencies": [],
+            "details": "Store 'jwt-secret' and 'db-password' in Secret Manager.",
             "status": "pending",
-            "dependencies": [
-              "2.2",
-              "2.3"
-            ],
-            "parentTaskId": 2
+            "testStrategy": "Access Secret Manager and retrieve stored secrets to ensure they are correctly configured."
           },
           {
             "id": 5,
-            "title": "Evidence Extraction System",
-            "description": "Implement system to extract and rank supporting evidence from linguistic, behavioral, and contextual sources",
-            "details": "Select representative evidence from transcripts and telemetry, implement relevance ranking, add timestamp attribution, format evidence for display in dashboards.",
+            "title": "Run Terraform Init",
+            "description": "Initialize Terraform in the specified directory.",
+            "dependencies": [],
+            "details": "Run 'terraform init' in the '/infrastructure/terraform' directory.",
             "status": "pending",
-            "dependencies": [
-              "2.4"
-            ],
-            "parentTaskId": 2
+            "testStrategy": "Run Terraform plan and apply commands to ensure infrastructure can be managed as code."
           },
           {
             "id": 6,
-            "title": "Reasoning Generation with LLM",
-            "description": "Integrate OpenAI GPT-4 API to generate human-readable explanations for skill assessments",
-            "details": "Implement prompt templates for each skill, integrate GPT-4 API, generate 2-3 sentence explanations linking evidence to scores, add confidence estimates.",
-            "status": "pending",
-            "dependencies": [
-              "2.5"
-            ],
-            "parentTaskId": 2
-          },
-          {
-            "id": 7,
-            "title": "Model Monitoring and Alerting",
-            "description": "Set up monitoring for model performance, drift detection, and automated alerts",
-            "details": "Implement prediction logging, track accuracy metrics over time, detect model drift, set up alerts for performance degradation, create dashboards for ML ops.",
-            "status": "pending",
-            "dependencies": [
-              "2.4"
-            ],
-            "parentTaskId": 2
-          }
-        ]
-      },
-      {
-        "id": 3,
-        "title": "Phase 3: Dashboards and Integration",
-        "description": "Build React-based teacher, administrator, and student dashboards with SIS integration, RBAC, reporting, and user management",
-        "details": "Deliverables: Teacher dashboard (React), Administrator dashboard (React), Student portal (React), SIS integration (OneRoster, Clever, ClassLink), Role-based access control, Reporting features, User management. Timeline: Weeks 17-24. Team: 4 engineers (2 frontend, 1 backend, 1 product)",
-        "testStrategy": "UI component tests, User acceptance testing with teachers, SIS integration tests, RBAC security tests, Dashboard performance tests (<2s load time)",
-        "status": "pending",
-        "dependencies": [
-          2
-        ],
-        "priority": "high",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Teacher Dashboard - Core Views",
-            "description": "Build React-based teacher dashboard with class overview, student list, and filtering capabilities",
-            "details": "Implement class overview with skill distribution, sortable/filterable student list, skill score visualizations, responsive design with <2s load time.",
-            "status": "pending",
+            "title": "Configure GitHub Actions Secrets",
+            "description": "Set up secrets for CI/CD workflows.",
             "dependencies": [],
-            "parentTaskId": 3
-          },
-          {
-            "id": 2,
-            "title": "Teacher Dashboard - Student Detail Views",
-            "description": "Implement detailed student profile views with evidence, reasoning, trends, and alerts",
-            "details": "Create student detail page showing all skills with evidence excerpts, reasoning explanations, temporal trends, alerts for students needing support.",
+            "details": "Configure GitHub Actions secrets for CI/CD workflows to interact with GCP.",
             "status": "pending",
-            "dependencies": [
-              "3.1"
-            ],
-            "parentTaskId": 3
-          },
-          {
-            "id": 3,
-            "title": "Administrator Dashboard",
-            "description": "Build school/district-level dashboard with aggregated metrics, trends, and equity analysis",
-            "details": "Implement school-wide skill distributions, trend analysis over time periods, demographic breakdowns for equity analysis, heatmaps, exportable reports.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 3
-          },
-          {
-            "id": 4,
-            "title": "Student Portal",
-            "description": "Create student-facing portal showing personal skill profile and progress",
-            "details": "Implement student skill visualization, growth-oriented feedback display, achievement tracking, accessible and age-appropriate design.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 3
-          },
-          {
-            "id": 5,
-            "title": "School Information System Integration",
-            "description": "Implement OneRoster, Clever, and ClassLink integrations with CSV fallback for roster synchronization",
-            "details": "Implement OneRoster API client, Clever integration, ClassLink integration, CSV import fallback, automated daily sync, data validation and error handling.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 3
-          },
-          {
-            "id": 6,
-            "title": "Role-Based Access Control Implementation",
-            "description": "Enforce RBAC across all dashboards with audit logging",
-            "details": "Implement role checking middleware, enforce data access restrictions (teachers see own students, admins see school/district), create audit logs for all data access.",
-            "status": "pending",
-            "dependencies": [
-              "3.1",
-              "3.3"
-            ],
-            "parentTaskId": 3
-          },
-          {
-            "id": 7,
-            "title": "Reporting and Export Features",
-            "description": "Implement report generation and data export in PDF and CSV formats",
-            "details": "Create report templates for different stakeholders, implement PDF generation, CSV export functionality, scheduled report generation capabilities.",
-            "status": "pending",
-            "dependencies": [
-              "3.2",
-              "3.3"
-            ],
-            "parentTaskId": 3
-          }
-        ]
-      },
-      {
-        "id": 4,
-        "title": "Phase 4: Testing, Optimization, and Launch",
-        "description": "Comprehensive testing, performance optimization, security audit, pilot deployment, feedback integration, and launch preparation",
-        "details": "Deliverables: Comprehensive testing (unit, integration, end-to-end), Performance optimization, Security audit and hardening, Pilot with 1-2 schools, Feedback integration, Launch preparation, Documentation and training. Timeline: Weeks 25-32. Team: 3 engineers (1 QA, 1 DevOps, 1 backend), 1 product manager",
-        "testStrategy": "Test coverage >80%, Performance benchmarks met, Security audit pass, Pilot school validation, Educator acceptance survey (80% target)",
-        "status": "pending",
-        "dependencies": [
-          3
-        ],
-        "priority": "high",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Comprehensive Test Suite Development",
-            "description": "Build unit, integration, and end-to-end tests achieving >80% coverage",
-            "details": "Write unit tests for all components, integration tests for API endpoints and pipelines, end-to-end tests for user workflows, achieve >80% test coverage.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 4
-          },
-          {
-            "id": 2,
-            "title": "Performance Optimization",
-            "description": "Optimize system performance to meet latency and throughput requirements",
-            "details": "Profile and optimize slow queries, implement caching strategies, optimize ML inference latency, reduce dashboard load times, ensure API p95 <500ms.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 4
-          },
-          {
-            "id": 3,
-            "title": "Security Audit and Hardening",
-            "description": "Conduct comprehensive security audit and implement hardening measures for FERPA/COPPA compliance",
-            "details": "Perform security audit, fix vulnerabilities, ensure FERPA/COPPA compliance, implement encryption at rest and in transit, conduct penetration testing, achieve SOC 2 readiness.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 4
-          },
-          {
-            "id": 4,
-            "title": "Pilot School Onboarding and Deployment",
-            "description": "Deploy system to 1-2 pilot schools with full support and monitoring",
-            "details": "Select pilot schools, conduct onboarding and training, deploy system, provide ongoing support, monitor system performance and user feedback.",
-            "status": "pending",
-            "dependencies": [
-              "4.1",
-              "4.2",
-              "4.3"
-            ],
-            "parentTaskId": 4
-          },
-          {
-            "id": 5,
-            "title": "Pilot Feedback Collection and Integration",
-            "description": "Collect feedback from pilot schools and implement critical improvements",
-            "details": "Conduct teacher surveys (target 80% acceptance), collect student engagement data (target 85%), identify and fix critical issues, implement priority enhancements.",
-            "status": "pending",
-            "dependencies": [
-              "4.4"
-            ],
-            "parentTaskId": 4
-          },
-          {
-            "id": 6,
-            "title": "Validation Study Execution",
-            "description": "Conduct validation study to verify model accuracy, fairness, and reliability",
-            "details": "Execute convergent validity testing (r ≥ 0.70 with teacher ratings), test-retest reliability (r ≥ 0.75), equity analysis (no demographic disparities), responsiveness testing.",
-            "status": "pending",
-            "dependencies": [
-              "4.4"
-            ],
-            "parentTaskId": 4
-          },
-          {
-            "id": 7,
-            "title": "Documentation and Training Materials",
-            "description": "Create comprehensive documentation and training materials for all user types",
-            "details": "Write user guides for teachers, admins, students. Create video tutorials, develop training curriculum, prepare technical documentation, create FAQ and troubleshooting guides.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 4
-          },
-          {
-            "id": 8,
-            "title": "Launch Preparation and Go-Live",
-            "description": "Finalize launch preparations and execute go-live plan",
-            "details": "Complete launch checklist, execute production deployment, activate monitoring and alerting, conduct launch communication, provide launch support, monitor initial adoption.",
-            "status": "pending",
-            "dependencies": [
-              "4.5",
-              "4.6",
-              "4.7"
-            ],
-            "parentTaskId": 4
-          }
-        ]
-      },
-      {
-        "id": 5,
-        "title": "Game-Based Assessment: Flourish Academy",
-        "description": "Develop the Unity-based narrative game for stealth assessment of non-academic skills with missions, telemetry, and engagement mechanics",
-        "details": "Components: Unity game client, Narrative-driven missions (empathy, adaptability, problem-solving, collaboration, resilience), Character development system, Telemetry logging, Think-aloud prompts, Adaptive difficulty, Accessibility features. Parallel development with other phases.",
-        "testStrategy": "Playtesting with students, Telemetry data validation, Student engagement survey (85% target), Accessibility compliance testing, Performance testing on target devices",
-        "status": "pending",
-        "dependencies": [],
-        "priority": "high",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Unity Game Foundation and Architecture",
-            "description": "Set up Unity project, core architecture, and game systems framework",
-            "details": "Create Unity project with proper architecture patterns, implement core game systems (scene management, state management, save system), set up development pipeline and version control.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 5
-          },
-          {
-            "id": 2,
-            "title": "Narrative Design and Dialogue System",
-            "description": "Develop narrative framework, dialogue system, and story content for all acts",
-            "details": "Write narrative for Acts 1-3 plus epilogue, design character arcs, implement dialogue system with branching conversations, create relationship tracking system.",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 5
-          },
-          {
-            "id": 3,
-            "title": "Core Mission System Development",
-            "description": "Build mission system and implement the 5 core assessment missions",
-            "details": "Implement mission framework, create Mission 1 (Empathy), Mission 2 (Adaptability), Mission 3 (Problem-Solving), Mission 4 (Collaboration), Mission 5 (Resilience). Include choice consequences and skill assessment hooks.",
-            "status": "pending",
-            "dependencies": [
-              "5.1",
-              "5.2"
-            ],
-            "parentTaskId": 5
-          },
-          {
-            "id": 4,
-            "title": "Telemetry and Analytics System",
-            "description": "Implement comprehensive telemetry logging for all player interactions and decisions",
-            "details": "Create telemetry event schema, implement logging for choices, time spent, mistakes/recovery, collaboration indicators, distraction events. Integrate with backend telemetry pipeline.",
-            "status": "pending",
-            "dependencies": [
-              "5.1"
-            ],
-            "parentTaskId": 5
-          },
-          {
-            "id": 5,
-            "title": "Character System and NPC Interactions",
-            "description": "Develop character system, NPC behaviors, and relationship mechanics",
-            "details": "Create player character customization, implement NPC AI and behaviors, build relationship tracking system, design mentor and classmate characters with distinct personalities.",
-            "status": "pending",
-            "dependencies": [
-              "5.2"
-            ],
-            "parentTaskId": 5
-          },
-          {
-            "id": 6,
-            "title": "Think-Aloud and Metacognitive Prompts",
-            "description": "Implement think-aloud prompt system to capture metacognitive processes during gameplay",
-            "details": "Design contextual think-aloud prompts, implement prompt timing system, create text input interface, log responses with context for analysis.",
-            "status": "pending",
-            "dependencies": [
-              "5.3"
-            ],
-            "parentTaskId": 5
-          },
-          {
-            "id": 7,
-            "title": "Engagement and Progression Systems",
-            "description": "Implement achievement system, progression mechanics, and engagement features",
-            "details": "Create achievement badge system, implement world progression and unlocks, design meaningful choice feedback, build adaptive difficulty system to maintain engagement.",
-            "status": "pending",
-            "dependencies": [
-              "5.3"
-            ],
-            "parentTaskId": 5
-          },
-          {
-            "id": 8,
-            "title": "Accessibility Features Implementation",
-            "description": "Implement comprehensive accessibility features for inclusive gameplay",
-            "details": "Add multiple difficulty levels, implement text-to-speech for dialogue, ensure color-blind friendly design, add keyboard and controller support, implement adjustable text size, ensure WCAG 2.1 AA compliance.",
-            "status": "pending",
-            "dependencies": [
-              "5.1"
-            ],
-            "parentTaskId": 5
-          },
-          {
-            "id": 9,
-            "title": "Game Testing and Balancing",
-            "description": "Conduct playtesting with target audience and balance game mechanics",
-            "details": "Organize student playtesting sessions, collect engagement feedback (target 85%), validate telemetry data quality, balance mission difficulty, optimize game performance on target devices.",
-            "status": "pending",
-            "dependencies": [
-              "5.3",
-              "5.4",
-              "5.6",
-              "5.7",
-              "5.8"
-            ],
-            "parentTaskId": 5
+            "testStrategy": "Trigger a GitHub Actions workflow to verify CI/CD integration with GCP."
           }
         ]
       }
     ],
     "metadata": {
       "created": "2025-11-12T06:31:05.563Z",
-      "description": "Default tasks context",
-      "updated": "2025-11-12T06:47:30.427Z"
+      "updated": "2025-11-12T20:47:35.132Z",
+      "description": "Tasks for master context"
     }
   }
 }
