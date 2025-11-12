@@ -44,7 +44,7 @@
             "description": "Deploy Cloud Tasks to handle asynchronous job processing.",
             "dependencies": [],
             "details": "Set up Cloud Tasks queues, configure task handlers, and ensure tasks are processed in a multi-tenant aware manner.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test task creation and processing with various load scenarios."
           },
           {
@@ -53,7 +53,7 @@
             "description": "Set up Cloud Pub/Sub for real-time event streaming.",
             "dependencies": [],
             "details": "Create Pub/Sub topics and subscriptions, configure them for multi-tenant event isolation, and integrate with other services.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate event publishing and verify message delivery and processing."
           }
         ]
@@ -1336,7 +1336,7 @@
         "subtasks": []
       },
       {
-        "id": "35",
+        "id": 35,
         "title": "GCP Project Setup and Infrastructure Prerequisites",
         "description": "Set up a Google Cloud Platform project with necessary infrastructure and configurations for development.",
         "status": "in-progress",
@@ -1354,7 +1354,7 @@
             "description": "Ensure billing is enabled for the GCP project 'unseenedgeai'.",
             "dependencies": [],
             "details": "Check the billing section in the GCP console.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify billing status through the GCP console."
           },
           {
@@ -1363,7 +1363,7 @@
             "description": "Enable necessary APIs for the project.",
             "dependencies": [],
             "details": "Enable APIs such as Cloud Run, Cloud SQL, Cloud Storage, Cloud Tasks, Pub/Sub, and Secret Manager.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Check the enabled APIs through the GCP console to ensure they are active."
           },
           {
@@ -1372,7 +1372,7 @@
             "description": "Create a service account with appropriate IAM roles.",
             "dependencies": [],
             "details": "Create 'mass-api' service account and assign necessary roles.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate the service account permissions by attempting to access resources it should manage."
           },
           {
@@ -1381,7 +1381,7 @@
             "description": "Store initial secrets needed for the application.",
             "dependencies": [],
             "details": "Store 'jwt-secret' and 'db-password' in Secret Manager.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Access Secret Manager and retrieve stored secrets to ensure they are correctly configured."
           },
           {
@@ -1390,7 +1390,7 @@
             "description": "Initialize Terraform in the specified directory.",
             "dependencies": [],
             "details": "Run 'terraform init' in the '/infrastructure/terraform' directory.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run Terraform plan and apply commands to ensure infrastructure can be managed as code."
           },
           {
@@ -1399,7 +1399,7 @@
             "description": "Set up secrets for CI/CD workflows.",
             "dependencies": [],
             "details": "Configure GitHub Actions secrets for CI/CD workflows to interact with GCP.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger a GitHub Actions workflow to verify CI/CD integration with GCP."
           }
         ]
@@ -1407,7 +1407,7 @@
     ],
     "metadata": {
       "created": "2025-11-12T06:31:05.563Z",
-      "updated": "2025-11-12T20:47:35.132Z",
+      "updated": "2025-11-12T21:48:27.878Z",
       "description": "Tasks for master context"
     }
   }
