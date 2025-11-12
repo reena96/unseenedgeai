@@ -43,6 +43,69 @@ resource "google_secret_manager_secret" "openai_api_key" {
 # Note: openai-api-key secret version already exists from previous setup
 # Users should update it manually with: gcloud secrets versions add openai-api-key --data-file=-
 
+# App Secret Key (for session encryption)
+resource "random_password" "app_secret" {
+  length  = 32
+  special = false
+}
+
+resource "google_secret_manager_secret" "app_secret_key" {
+  secret_id = "app-secret-key"
+
+  replication {
+    auto {}
+  }
+
+  labels = local.common_labels
+
+  depends_on = [google_project_service.required_apis]
+}
+
+resource "google_secret_manager_secret_version" "app_secret_key" {
+  secret      = google_secret_manager_secret.app_secret_key.id
+  secret_data = random_password.app_secret.result
+}
+
+# Database URL (constructed from Cloud SQL instance)
+resource "google_secret_manager_secret" "database_url" {
+  secret_id = "database-url"
+
+  replication {
+    auto {}
+  }
+
+  labels = local.common_labels
+
+  depends_on = [google_project_service.required_apis]
+}
+
+resource "google_secret_manager_secret_version" "database_url" {
+  secret      = google_secret_manager_secret.database_url.id
+  secret_data = "postgresql://${google_sql_user.mass_user.name}:${random_password.db_password.result}@/${google_sql_database.mass_database.name}?host=/cloudsql/${google_sql_database_instance.mass_db.connection_name}"
+}
+
+# Redis URL (placeholder for future Redis instance)
+resource "google_secret_manager_secret" "redis_url" {
+  secret_id = "redis-url"
+
+  replication {
+    auto {}
+  }
+
+  labels = local.common_labels
+
+  depends_on = [google_project_service.required_apis]
+}
+
+resource "google_secret_manager_secret_version" "redis_url" {
+  secret      = google_secret_manager_secret.redis_url.id
+  secret_data = "redis://localhost:6379/0" # Placeholder - update when Redis deployed
+
+  lifecycle {
+    ignore_changes = [secret_data]
+  }
+}
+
 # Sentry DSN (optional - placeholder)
 resource "google_secret_manager_secret" "sentry_dsn" {
   secret_id = "sentry-dsn"
@@ -72,6 +135,12 @@ resource "google_secret_manager_secret_version" "sentry_dsn" {
 # ============================================
 
 # Grant service account access to all secrets
+resource "google_secret_manager_secret_iam_member" "app_secret_access" {
+  secret_id = google_secret_manager_secret.app_secret_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.mass_api.email}"
+}
+
 resource "google_secret_manager_secret_iam_member" "jwt_secret_access" {
   secret_id = google_secret_manager_secret.jwt_secret.id
   role      = "roles/secretmanager.secretAccessor"
@@ -80,6 +149,18 @@ resource "google_secret_manager_secret_iam_member" "jwt_secret_access" {
 
 resource "google_secret_manager_secret_iam_member" "db_password_access" {
   secret_id = google_secret_manager_secret.db_password.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.mass_api.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "database_url_access" {
+  secret_id = google_secret_manager_secret.database_url.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.mass_api.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "redis_url_access" {
+  secret_id = google_secret_manager_secret.redis_url.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.mass_api.email}"
 }
