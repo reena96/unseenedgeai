@@ -155,7 +155,10 @@ async def seed_teachers(session: AsyncSession, schools: list[School]) -> list[Te
             id=str(uuid.uuid4()),
             user_id=user.id,
             school_id=data["school"].id,
-            subjects_taught=data["subjects"],
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            email=data["email"],
+            department=data["subjects"][0] if data["subjects"] else None,
         )
         session.add(teacher)
         teachers.append(teacher)
