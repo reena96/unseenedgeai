@@ -16,11 +16,24 @@ class TestTranscriptionService:
     @pytest.fixture
     def transcription_service(self):
         """Create a transcription service instance for testing."""
-        return TranscriptionService(
-            project_id="test-project",
-            audio_bucket_name="test-bucket",
-            language_code="en-US",
-        )
+        # Mock Google Cloud clients to avoid authentication issues in tests
+        with patch(
+            "app.services.transcription.speech.SpeechClient"
+        ) as mock_speech, patch(
+            "app.services.transcription.storage.Client"
+        ) as mock_storage:
+
+            service = TranscriptionService(
+                project_id="test-project",
+                audio_bucket_name="test-bucket",
+                language_code="en-US",
+            )
+
+            # Replace with mocks
+            service.speech_client = mock_speech.return_value
+            service.storage_client = mock_storage.return_value
+
+            return service
 
     def test_service_initialization(self, transcription_service):
         """Test transcription service initializes correctly."""
