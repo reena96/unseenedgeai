@@ -153,6 +153,7 @@ async def upload_audio(
 
         # Create database record
         audio_file = AudioFile(
+            id=str(uuid.uuid4()),
             student_id=student_id,
             storage_path=gcs_uri,
             file_size_bytes=file_size,

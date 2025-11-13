@@ -42,10 +42,40 @@ def client():
 
 
 @pytest_asyncio.fixture
-async def async_client():
+async def async_client(db_session):
     """Create an async HTTP client for testing async endpoints with database fixtures."""
+    from app.core.database import get_db
+    from unittest.mock import AsyncMock
+    from datetime import datetime, timezone
+
+    # Mock commit and refresh on the shared db_session to prevent transaction closure
+    original_commit = db_session.commit
+    original_refresh = db_session.refresh
+    db_session.commit = AsyncMock(return_value=None)
+
+    # Mock refresh to set timestamps if they're None
+    async def mock_refresh(obj):
+        if hasattr(obj, "created_at") and obj.created_at is None:
+            obj.created_at = datetime.now(timezone.utc)
+        if hasattr(obj, "updated_at") and obj.updated_at is None:
+            obj.updated_at = datetime.now(timezone.utc)
+        return None
+
+    db_session.refresh = AsyncMock(side_effect=mock_refresh)
+
+    # Override the get_db dependency to use the test session
+    async def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
+
+    # Restore original methods and clean up
+    db_session.commit = original_commit
+    db_session.refresh = original_refresh
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -186,15 +216,14 @@ async def test_teacher(db_session, test_school, test_user):
 
 
 @pytest_asyncio.fixture
-async def test_student(db_session, test_school, test_teacher):
-    """Create a test student with school and teacher relationships."""
+async def test_student(db_session, test_school):
+    """Create a test student with school relationship."""
     student = Student(
         id=str(uuid.uuid4()),
         first_name="Test",
         last_name="Student",
         grade_level=5,
         school_id=test_school.id,
-        teacher_id=test_teacher.id,
     )
     db_session.add(student)
     await db_session.flush()  # Flush to database without committing

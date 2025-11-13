@@ -1,6 +1,7 @@
 """Google Cloud Speech-to-Text transcription service."""
 
 import logging
+import uuid
 from typing import Optional, Dict, Any
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import storage
@@ -205,6 +206,7 @@ class TranscriptionService:
 
             # Create transcript record
             transcript = Transcript(
+                id=str(uuid.uuid4()),
                 audio_file_id=audio_file.id,
                 student_id=audio_file.student_id,
                 text=transcription_result["transcript"],
