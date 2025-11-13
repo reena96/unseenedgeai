@@ -1,13 +1,12 @@
 """Tests for transcription service and endpoints."""
 
 import pytest
-from unittest.mock import Mock, patch
 from io import BytesIO
+from unittest.mock import Mock, patch
 
-from app.services.transcription import TranscriptionService
 from app.models.audio import AudioFile
 from app.models.transcript import Transcript
-from app.models.student import Student
+from app.services.transcription import TranscriptionService
 
 
 class TestTranscriptionService:
@@ -134,23 +133,16 @@ class TestTranscriptionService:
                 )
 
     @pytest.mark.asyncio
-    async def test_process_audio_file_success(self, transcription_service, db_session):
+    async def test_process_audio_file_success(
+        self, transcription_service, db_session, test_student
+    ):
         """Test successful audio file processing."""
-        # Create test student
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
-        await db_session.commit()
+        # Use test_student fixture (automatically creates school and teacher)
 
         # Create test audio file
         audio_file = AudioFile(
             id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             storage_path="gs://test-bucket/audio.wav",
             source_type="classroom",
             transcription_status="pending",
@@ -179,7 +171,7 @@ class TestTranscriptionService:
             assert transcript.confidence_score == 0.85
             assert transcript.word_count == 2
             assert transcript.audio_file_id == "audio-1"
-            assert transcript.student_id == "student-1"
+            assert transcript.student_id == test_student.id
 
             # Verify audio file status updated
             await db_session.refresh(audio_file)
@@ -195,23 +187,15 @@ class TestTranscriptionService:
 
     @pytest.mark.asyncio
     async def test_process_audio_file_already_transcribed(
-        self, transcription_service, db_session
+        self, transcription_service, db_session, test_student
     ):
         """Test processing already transcribed audio file."""
-        # Create test student
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
+        # Use test_student fixture
 
         # Create already transcribed audio file
         audio_file = AudioFile(
             id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             storage_path="gs://test-bucket/audio.wav",
             source_type="classroom",
             transcription_status="completed",
@@ -223,22 +207,16 @@ class TestTranscriptionService:
             await transcription_service.process_audio_file(db_session, "audio-1")
 
     @pytest.mark.asyncio
-    async def test_process_audio_file_failure(self, transcription_service, db_session):
+    async def test_process_audio_file_failure(
+        self, transcription_service, db_session, test_student
+    ):
         """Test audio file processing failure updates status."""
-        # Create test student
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
+        # Use test_student fixture
 
         # Create test audio file
         audio_file = AudioFile(
             id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             storage_path="gs://test-bucket/audio.wav",
             source_type="classroom",
             transcription_status="pending",
@@ -260,21 +238,15 @@ class TestTranscriptionService:
             assert audio_file.transcription_status == "failed"
 
     @pytest.mark.asyncio
-    async def test_get_transcript_success(self, transcription_service, db_session):
+    async def test_get_transcript_success(
+        self, transcription_service, db_session, test_student
+    ):
         """Test retrieving existing transcript."""
-        # Create test data
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
+        # Use test_student fixture
 
         audio_file = AudioFile(
             id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             storage_path="gs://test-bucket/audio.wav",
             source_type="classroom",
             transcription_status="completed",
@@ -283,7 +255,7 @@ class TestTranscriptionService:
 
         transcript = Transcript(
             audio_file_id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             text="Test transcript",
             word_count=2,
             confidence_score=0.85,
@@ -310,24 +282,17 @@ class TestTranscriptionEndpoints:
     """Test cases for transcription API endpoints."""
 
     @pytest.mark.asyncio
-    async def test_upload_audio_success(self, client, auth_headers, db_session):
+    async def test_upload_audio_success(
+        self, async_client, auth_headers, db_session, test_student
+    ):
         """Test successful audio upload."""
-        # Create test student
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
-        await db_session.commit()
+        # Use test_student fixture
 
         # Create mock file upload
         file_content = b"fake audio data"
         files = {"file": ("test.wav", BytesIO(file_content), "audio/wav")}
         data = {
-            "student_id": "student-1",
+            "student_id": test_student.id,
             "source_type": "classroom",
         }
 
@@ -336,7 +301,7 @@ class TestTranscriptionEndpoints:
         ) as mock_upload:
             mock_upload.return_value = "gs://test-bucket/student-1/test.wav"
 
-            response = await client.post(
+            response = await async_client.post(
                 "/api/v1/audio/upload",
                 files=files,
                 data=data,
@@ -345,11 +310,10 @@ class TestTranscriptionEndpoints:
 
             assert response.status_code == 201
             data = response.json()
-            assert data["student_id"] == "student-1"
+            assert data["student_id"] == test_student.id
             assert data["transcription_status"] == "pending"
 
-    @pytest.mark.asyncio
-    async def test_upload_audio_student_not_found(self, client, auth_headers):
+    def test_upload_audio_student_not_found(self, client, auth_headers):
         """Test upload with non-existent student."""
         file_content = b"fake audio data"
         files = {"file": ("test.wav", BytesIO(file_content), "audio/wav")}
@@ -358,7 +322,7 @@ class TestTranscriptionEndpoints:
             "source_type": "classroom",
         }
 
-        response = await client.post(
+        response = client.post(
             "/api/v1/audio/upload",
             files=files,
             data=data,
@@ -368,29 +332,23 @@ class TestTranscriptionEndpoints:
         assert response.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_start_transcription_success(self, client, auth_headers, db_session):
+    async def test_start_transcription_success(
+        self, async_client, auth_headers, db_session, test_student
+    ):
         """Test starting transcription job."""
-        # Create test data
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
+        # Use test_student fixture
 
         audio_file = AudioFile(
             id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             storage_path="gs://test-bucket/audio.wav",
             source_type="classroom",
             transcription_status="pending",
         )
         db_session.add(audio_file)
-        await db_session.commit()
+        await db_session.flush()
 
-        response = await client.post(
+        response = await async_client.post(
             "/api/v1/audio/audio-1/transcribe",
             headers=auth_headers,
         )
@@ -401,21 +359,15 @@ class TestTranscriptionEndpoints:
         assert data["status"] == "accepted"
 
     @pytest.mark.asyncio
-    async def test_get_transcript_success(self, client, auth_headers, db_session):
+    async def test_get_transcript_success(
+        self, async_client, auth_headers, db_session, test_student
+    ):
         """Test retrieving transcript."""
-        # Create test data
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
+        # Use test_student fixture
 
         audio_file = AudioFile(
             id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             storage_path="gs://test-bucket/audio.wav",
             source_type="classroom",
             transcription_status="completed",
@@ -424,15 +376,15 @@ class TestTranscriptionEndpoints:
 
         transcript = Transcript(
             audio_file_id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             text="Test transcript",
             word_count=2,
             confidence_score=0.85,
         )
         db_session.add(transcript)
-        await db_session.commit()
+        await db_session.flush()
 
-        response = await client.get(
+        response = await async_client.get(
             "/api/v1/audio/audio-1/transcript",
             headers=auth_headers,
         )
@@ -443,29 +395,23 @@ class TestTranscriptionEndpoints:
         assert data["word_count"] == 2
 
     @pytest.mark.asyncio
-    async def test_get_transcription_status(self, client, auth_headers, db_session):
+    async def test_get_transcription_status(
+        self, async_client, auth_headers, db_session, test_student
+    ):
         """Test getting transcription status."""
-        # Create test data
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
+        # Use test_student fixture
 
         audio_file = AudioFile(
             id="audio-1",
-            student_id="student-1",
+            student_id=test_student.id,
             storage_path="gs://test-bucket/audio.wav",
             source_type="classroom",
             transcription_status="processing",
         )
         db_session.add(audio_file)
-        await db_session.commit()
+        await db_session.flush()
 
-        response = await client.get(
+        response = await async_client.get(
             "/api/v1/audio/audio-1/status",
             headers=auth_headers,
         )
@@ -476,30 +422,24 @@ class TestTranscriptionEndpoints:
         assert data["audio_file_id"] == "audio-1"
 
     @pytest.mark.asyncio
-    async def test_list_student_audio(self, client, auth_headers, db_session):
+    async def test_list_student_audio(
+        self, async_client, auth_headers, db_session, test_student
+    ):
         """Test listing student audio files."""
-        # Create test data
-        student = Student(
-            id="student-1",
-            first_name="Test",
-            last_name="Student",
-            grade_level=5,
-            school_id="school-1",
-        )
-        db_session.add(student)
+        # Use test_student fixture
 
         for i in range(3):
             audio = AudioFile(
-                student_id="student-1",
+                student_id=test_student.id,
                 storage_path=f"gs://test-bucket/audio{i}.wav",
                 source_type="classroom",
                 transcription_status="pending",
             )
             db_session.add(audio)
-        await db_session.commit()
+        await db_session.flush()
 
-        response = await client.get(
-            "/api/v1/student/student-1/audio",
+        response = await async_client.get(
+            f"/api/v1/student/{test_student.id}/audio",
             headers=auth_headers,
         )
 
