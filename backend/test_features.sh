@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Activate virtual environment if it exists
+if [ -d "venv" ]; then
+    source venv/bin/activate
+fi
+
 BASE_URL="http://localhost:8000"
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -87,7 +92,7 @@ fi
 # Test 2: Extract Behavioral Features
 echo -n "Test 2: Extract behavioral features... "
 BEH_RESPONSE=$(curl -s -X POST "$BASE_URL/api/v1/features/behavioral/${SESSION_ID}")
-if echo $BEH_RESPONSE | jq -e '.features.total_events' > /dev/null 2>&1; then
+if echo $BEH_RESPONSE | jq -e '.features.event_count' > /dev/null 2>&1; then
     echo -e "${GREEN}✅ PASS${NC}"
     ((PASS_COUNT++))
 else
@@ -110,7 +115,7 @@ fi
 # Test 4: Retrieve Behavioral Features
 echo -n "Test 4: Retrieve behavioral features... "
 GET_BEH=$(curl -s -X GET "$BASE_URL/api/v1/features/behavioral/${SESSION_ID}")
-if echo $GET_BEH | jq -e '.features.total_events' > /dev/null 2>&1; then
+if echo $GET_BEH | jq -e '.features.event_count' > /dev/null 2>&1; then
     echo -e "${GREEN}✅ PASS${NC}"
     ((PASS_COUNT++))
 else
@@ -191,9 +196,9 @@ fi
 
 # Test 10: Feature Quality - Event Count
 echo -n "Test 10: Feature quality (events > 0)... "
-TOTAL_EVENTS=$(echo $BEH_RESPONSE | jq -r '.features.total_events')
-if [ "$TOTAL_EVENTS" -gt 0 ] 2>/dev/null; then
-    echo -e "${GREEN}✅ PASS (events: $TOTAL_EVENTS)${NC}"
+EVENT_COUNT=$(echo $BEH_RESPONSE | jq -r '.features.event_count')
+if [ "$EVENT_COUNT" -gt 0 ] 2>/dev/null; then
+    echo -e "${GREEN}✅ PASS (events: $EVENT_COUNT)${NC}"
     ((PASS_COUNT++))
 else
     echo -e "${RED}❌ FAIL${NC}"
@@ -223,7 +228,7 @@ if [ $FAIL_COUNT -eq 0 ]; then
     echo ""
     echo "Behavioral Features:"
     echo $BEH_RESPONSE | jq '{
-        total_events: .features.total_events,
+        event_count: .features.event_count,
         completion_rate: .features.task_completion_rate,
         retry_count: .features.retry_count,
         focus_duration: .features.focus_duration
