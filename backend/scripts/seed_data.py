@@ -1,7 +1,7 @@
 """
 Seed database with test data for development and testing.
 
-This script creates sample students, teachers, schools, and audio files
+This script creates sample students, teachers, schools, and related data
 to enable testing of the API without manual data entry.
 
 Usage:
@@ -26,7 +26,7 @@ from sqlalchemy.ext.asyncio import (  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
 from app.core.config import settings  # noqa: E402
-from app.models.assessment import SkillAssessment  # noqa: E402
+from app.models.assessment import SkillAssessment, SkillType  # noqa: E402
 from app.models.audio import AudioFile  # noqa: E402
 from app.models.game_telemetry import GameSession, GameTelemetry  # noqa: E402
 from app.models.school import School  # noqa: E402
@@ -52,8 +52,8 @@ async def clear_data(session: AsyncSession):
     await session.execute(text("DELETE FROM audio_files"))
     await session.execute(text("DELETE FROM students"))
     await session.execute(text("DELETE FROM teachers"))
-    await session.execute(text("DELETE FROM schools"))
     await session.execute(text("DELETE FROM users"))
+    await session.execute(text("DELETE FROM schools"))
 
     await session.commit()
     print("✅ Existing data cleared")
@@ -110,28 +110,28 @@ async def seed_teachers(session: AsyncSession, schools: list[School]) -> list[Te
             "first_name": "John",
             "last_name": "Smith",
             "school": schools[0],
-            "subjects": ["Reading", "Writing"],
+            "department": "Reading",
         },
         {
             "email": "sarah.johnson@springfield.edu",
             "first_name": "Sarah",
             "last_name": "Johnson",
             "school": schools[0],
-            "subjects": ["Math", "Science"],
+            "department": "Math",
         },
         {
             "email": "michael.brown@lincoln.edu",
             "first_name": "Michael",
             "last_name": "Brown",
             "school": schools[1],
-            "subjects": ["English", "Literature"],
+            "department": "English",
         },
         {
             "email": "emily.davis@washington.edu",
             "first_name": "Emily",
             "last_name": "Davis",
             "school": schools[2],
-            "subjects": ["Reading", "Language Arts"],
+            "department": "Language Arts",
         },
     ]
 
@@ -158,7 +158,7 @@ async def seed_teachers(session: AsyncSession, schools: list[School]) -> list[Te
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
-            department=data["subjects"][0] if data["subjects"] else None,
+            department=data["department"],
         )
         session.add(teacher)
         teachers.append(teacher)
@@ -252,8 +252,7 @@ async def seed_students(
             last_name=data["last_name"],
             grade_level=data["grade"],
             school_id=school.id,
-            teacher_id=data["teacher"].id,
-            student_external_id=f"STU{i:05d}",
+            student_id_external=f"STU{i:05d}",
         )
         session.add(student)
         students.append(student)
@@ -274,44 +273,62 @@ async def seed_audio_files(
     print("\n🎤 Creating audio files and transcripts...")
 
     sample_texts = [
-        "The cat sat on the mat. It was a warm sunny day.",
-        "I like to read books about dinosaurs and space.",
-        "My favorite color is blue because it reminds me of the ocean.",
-        "Yesterday I went to the park and played on the swings.",
-        "I can count to one hundred. One, two, three, four, five...",
+        (
+            "I really enjoyed helping my friend understand the math problem. "
+            "It felt good to explain it in a way that made sense to them."
+        ),
+        (
+            "When I couldn't solve the puzzle at first, I tried a different "
+            "approach and finally figured it out."
+        ),
+        (
+            "Today in class we worked together as a team to build a project. "
+            "Everyone contributed their ideas."
+        ),
+        (
+            "I was frustrated when my drawing didn't turn out right, but I took "
+            "a break and tried again with a new strategy."
+        ),
+        (
+            "My favorite book is about space exploration. I love learning about "
+            "planets and astronauts."
+        ),
     ]
 
     audio_files = []
     transcripts = []
 
-    # Create 2-3 audio files per student
+    # Create 2 audio files per student
     for student in students[:5]:  # First 5 students only for demo
         for i in range(2):
             audio_file = AudioFile(
                 id=str(uuid.uuid4()),
                 student_id=student.id,
-                file_path=f"gs://mass-audio-dev/{student.id}/audio_{uuid.uuid4()}.wav",
+                storage_path=f"gs://mass-audio-dev/{student.id}/audio_{uuid.uuid4()}.wav",
                 duration_seconds=15.5 + i * 5,
-                sample_rate=16000,
                 file_size_bytes=248000 + i * 80000,
-                upload_timestamp=datetime.utcnow() - timedelta(days=i * 2),
+                source_type="classroom",
+                recording_date=(datetime.utcnow() - timedelta(days=i * 2)).strftime(
+                    "%Y-%m-%d"
+                ),
+                transcription_status="completed",
             )
             session.add(audio_file)
             audio_files.append(audio_file)
 
-            # Add transcript for some audio files
+            # Add transcript for first audio file
             if i == 0:
                 await session.flush()  # Get audio_file.id
 
+                transcript_text = sample_texts[len(transcripts) % len(sample_texts)]
                 transcript = Transcript(
                     id=str(uuid.uuid4()),
                     audio_file_id=audio_file.id,
-                    text=sample_texts[len(transcripts) % len(sample_texts)],
-                    confidence=0.92 + (i * 0.03),
-                    word_count=len(
-                        sample_texts[len(transcripts) % len(sample_texts)].split()
-                    ),
-                    processing_time_seconds=2.3 + i * 0.5,
+                    student_id=student.id,
+                    text=transcript_text,
+                    word_count=len(transcript_text.split()),
+                    confidence_score=0.92 + (i * 0.03),
+                    language_code="en-US",
                 )
                 session.add(transcript)
                 transcripts.append(transcript)
@@ -339,14 +356,16 @@ async def seed_game_sessions(
     # Create game sessions for first 3 students
     for student in students[:3]:
         for session_num in range(2):
+            start_time = datetime.utcnow() - timedelta(days=session_num * 3)
+            end_time = start_time + timedelta(hours=1)
+
             game_session = GameSession(
                 id=str(uuid.uuid4()),
                 student_id=student.id,
-                game_type="word_builder",
-                start_time=datetime.utcnow() - timedelta(days=session_num * 3),
-                end_time=datetime.utcnow() - timedelta(days=session_num * 3, hours=-1),
-                total_duration_seconds=3600,
-                completion_status="completed",
+                started_at=start_time,
+                ended_at=end_time,
+                mission_id=f"mission_{session_num + 1}",
+                game_version="1.0.0",
             )
             session.add(game_session)
             game_sessions.append(game_session)
@@ -357,6 +376,8 @@ async def seed_game_sessions(
             for event_num in range(5):
                 telemetry = GameTelemetry(
                     id=str(uuid.uuid4()),
+                    timestamp=start_time + timedelta(minutes=event_num * 12),
+                    student_id=student.id,
                     session_id=game_session.id,
                     event_type="word_attempt",
                     event_data={
@@ -364,8 +385,7 @@ async def seed_game_sessions(
                         "correct": event_num % 2 == 0,
                         "time_taken_ms": 2000 + event_num * 500,
                     },
-                    timestamp=game_session.start_time
-                    + timedelta(minutes=event_num * 12),
+                    mission_id=f"mission_{session_num + 1}",
                 )
                 session.add(telemetry)
                 telemetry_events.append(telemetry)
@@ -382,7 +402,12 @@ async def seed_assessments(session: AsyncSession, students: list[Student]):
     """Create sample skill assessments."""
     print("\n📊 Creating skill assessments...")
 
-    skills = ["phonemic_awareness", "word_recognition", "fluency", "comprehension"]
+    skills = [
+        SkillType.EMPATHY,
+        SkillType.PROBLEM_SOLVING,
+        SkillType.SELF_REGULATION,
+        SkillType.RESILIENCE,
+    ]
 
     assessments = []
     for student in students[:3]:
@@ -390,10 +415,16 @@ async def seed_assessments(session: AsyncSession, students: list[Student]):
             assessment = SkillAssessment(
                 id=str(uuid.uuid4()),
                 student_id=student.id,
-                skill_name=skill,
-                proficiency_level=2 + (hash(student.id) % 3),  # Level 2-4
-                confidence_score=0.75 + (hash(skill) % 20) / 100,
-                assessment_date=datetime.utcnow() - timedelta(days=7),
+                skill_type=skill,
+                score=0.65 + (hash(student.id + skill.value) % 30) / 100,
+                confidence=0.75 + (hash(skill.value) % 20) / 100,
+                reasoning=(
+                    f"Student demonstrates {skill.value} through consistent "
+                    "positive behaviors and responses."
+                ),
+                recommendations=(
+                    f"Continue to develop {skill.value} through targeted " "activities."
+                ),
             )
             session.add(assessment)
             assessments.append(assessment)
@@ -453,7 +484,6 @@ async def main():
             print("   Password: (use test password from your auth system)")
             print("\n🚀 Next steps:")
             print("   • Start the API: uvicorn app.main:app --reload")
-            print("   • Login with test credentials")
             print("   • Test endpoints at http://localhost:8000/api/v1/docs")
 
         except Exception as e:

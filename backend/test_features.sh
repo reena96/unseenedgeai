@@ -14,10 +14,49 @@ echo ""
 PASS_COUNT=0
 FAIL_COUNT=0
 
-# Get test IDs
-echo "🔍 Getting test data IDs..."
-TRANSCRIPT_ID=$(curl -s $BASE_URL/api/v1/transcripts 2>/dev/null | jq -r '.[0].id' 2>/dev/null)
-SESSION_ID=$(curl -s $BASE_URL/api/v1/game-sessions 2>/dev/null | jq -r '.[0].id' 2>/dev/null)
+# Get test IDs from database
+echo "🔍 Getting test data IDs from database..."
+TRANSCRIPT_ID=$(python -c "
+import asyncio
+import sys
+sys.path.insert(0, '.')
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy import select
+from app.core.config import settings
+from app.models.transcript import Transcript
+
+async def get_id():
+    engine = create_async_engine(settings.DATABASE_URL, echo=False)
+    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with async_session() as session:
+        result = await session.execute(select(Transcript).limit(1))
+        transcript = result.scalar_one_or_none()
+        await engine.dispose()
+        return transcript.id if transcript else None
+
+print(asyncio.run(get_id()) or '')
+" 2>/dev/null)
+
+SESSION_ID=$(python -c "
+import asyncio
+import sys
+sys.path.insert(0, '.')
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy import select
+from app.core.config import settings
+from app.models.game_telemetry import GameSession
+
+async def get_id():
+    engine = create_async_engine(settings.DATABASE_URL, echo=False)
+    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with async_session() as session:
+        result = await session.execute(select(GameSession).limit(1))
+        game_session = result.scalar_one_or_none()
+        await engine.dispose()
+        return game_session.id if game_session else None
+
+print(asyncio.run(get_id()) or '')
+" 2>/dev/null)
 
 if [ -z "$TRANSCRIPT_ID" ] || [ "$TRANSCRIPT_ID" = "null" ]; then
     echo -e "${RED}❌ No transcripts found. Run 'python scripts/seed_data.py --clear' first.${NC}"

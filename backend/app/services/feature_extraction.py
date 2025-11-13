@@ -7,6 +7,7 @@ import textstat
 from typing import Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import uuid
 
 from app.models.transcript import Transcript
 from app.models.features import LinguisticFeatures, BehavioralFeatures
@@ -286,6 +287,7 @@ class LinguisticFeatureExtractor:
         else:
             # Create new
             linguistic_features = LinguisticFeatures(
+                id=str(uuid.uuid4()),
                 transcript_id=transcript_id,
                 student_id=transcript.student_id,
                 empathy_markers=features["empathy_markers"],
@@ -530,6 +532,7 @@ class BehavioralFeatureExtractor:
         else:
             # Create new
             behavioral_features = BehavioralFeatures(
+                id=str(uuid.uuid4()),
                 student_id=game_session.student_id,
                 session_id=game_session_id,
                 task_completion_rate=features["task_completion_rate"],
