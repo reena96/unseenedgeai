@@ -20,6 +20,7 @@ from app.api.endpoints import (
     skills,
     transcription,
     features,
+    assessments,
 )
 
 # Configure logging
@@ -84,6 +85,7 @@ app.include_router(
     transcription.router, prefix=settings.API_V1_STR, tags=["transcription"]
 )
 app.include_router(features.router, prefix=settings.API_V1_STR, tags=["features"])
+app.include_router(assessments.router, prefix=settings.API_V1_STR, tags=["assessments"])
 
 
 @app.get("/")
