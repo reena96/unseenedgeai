@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import (  # noqa: E402
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy import text  # noqa: E402
 
 from app.core.config import settings  # noqa: E402
 from app.models.assessment import SkillAssessment  # noqa: E402
@@ -32,7 +33,7 @@ from app.models.school import School  # noqa: E402
 from app.models.student import Student  # noqa: E402
 from app.models.teacher import Teacher  # noqa: E402
 from app.models.transcript import Transcript  # noqa: E402
-from app.models.user import User  # noqa: E402
+from app.models.user import User, UserRole  # noqa: E402
 
 
 async def clear_data(session: AsyncSession):
@@ -40,19 +41,19 @@ async def clear_data(session: AsyncSession):
     print("🗑️  Clearing existing data...")
 
     # Delete in reverse order of dependencies
-    await session.execute("DELETE FROM evidence")
-    await session.execute("DELETE FROM rubric_assessments")
-    await session.execute("DELETE FROM skill_assessments")
-    await session.execute("DELETE FROM linguistic_features")
-    await session.execute("DELETE FROM behavioral_features")
-    await session.execute("DELETE FROM game_telemetry")
-    await session.execute("DELETE FROM game_sessions")
-    await session.execute("DELETE FROM transcripts")
-    await session.execute("DELETE FROM audio_files")
-    await session.execute("DELETE FROM students")
-    await session.execute("DELETE FROM teachers")
-    await session.execute("DELETE FROM schools")
-    await session.execute("DELETE FROM users")
+    await session.execute(text("DELETE FROM evidence"))
+    await session.execute(text("DELETE FROM rubric_assessments"))
+    await session.execute(text("DELETE FROM skill_assessments"))
+    await session.execute(text("DELETE FROM linguistic_features"))
+    await session.execute(text("DELETE FROM behavioral_features"))
+    await session.execute(text("DELETE FROM game_telemetry"))
+    await session.execute(text("DELETE FROM game_sessions"))
+    await session.execute(text("DELETE FROM transcripts"))
+    await session.execute(text("DELETE FROM audio_files"))
+    await session.execute(text("DELETE FROM students"))
+    await session.execute(text("DELETE FROM teachers"))
+    await session.execute(text("DELETE FROM schools"))
+    await session.execute(text("DELETE FROM users"))
 
     await session.commit()
     print("✅ Existing data cleared")
@@ -64,22 +65,28 @@ async def seed_schools(session: AsyncSession) -> list[School]:
 
     schools = [
         School(
+            id=str(uuid.uuid4()),
             name="Springfield Elementary",
             district="Springfield School District",
+            city="Springfield",
             state="IL",
-            country="USA",
+            zip_code="62701",
         ),
         School(
+            id=str(uuid.uuid4()),
             name="Lincoln Middle School",
             district="Lincoln County Schools",
+            city="Lincoln",
             state="CA",
-            country="USA",
+            zip_code="95648",
         ),
         School(
+            id=str(uuid.uuid4()),
             name="Washington High School",
             district="Washington District",
+            city="New York",
             state="NY",
-            country="USA",
+            zip_code="10001",
         ),
     ]
 
@@ -100,25 +107,29 @@ async def seed_teachers(session: AsyncSession, schools: list[School]) -> list[Te
     teachers_data = [
         {
             "email": "john.smith@springfield.edu",
-            "full_name": "John Smith",
+            "first_name": "John",
+            "last_name": "Smith",
             "school": schools[0],
             "subjects": ["Reading", "Writing"],
         },
         {
             "email": "sarah.johnson@springfield.edu",
-            "full_name": "Sarah Johnson",
+            "first_name": "Sarah",
+            "last_name": "Johnson",
             "school": schools[0],
             "subjects": ["Math", "Science"],
         },
         {
             "email": "michael.brown@lincoln.edu",
-            "full_name": "Michael Brown",
+            "first_name": "Michael",
+            "last_name": "Brown",
             "school": schools[1],
             "subjects": ["English", "Literature"],
         },
         {
             "email": "emily.davis@washington.edu",
-            "full_name": "Emily Davis",
+            "first_name": "Emily",
+            "last_name": "Davis",
             "school": schools[2],
             "subjects": ["Reading", "Language Arts"],
         },
@@ -128,16 +139,20 @@ async def seed_teachers(session: AsyncSession, schools: list[School]) -> list[Te
     for data in teachers_data:
         # Create user account
         user = User(
+            id=str(uuid.uuid4()),
             email=data["email"],
-            full_name=data["full_name"],
-            role="teacher",
-            hashed_password="$2b$12$test_hashed_password_for_seeding",  # Not for production!
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            role=UserRole.TEACHER,
+            school_id=data["school"].id,
+            password_hash="$2b$12$test_hashed_password_for_seeding",  # Not for production!
         )
         session.add(user)
         await session.flush()  # Get the user ID
 
         # Create teacher profile
         teacher = Teacher(
+            id=str(uuid.uuid4()),
             user_id=user.id,
             school_id=data["school"].id,
             subjects_taught=data["subjects"],
@@ -229,6 +244,7 @@ async def seed_students(
         school = schools[teachers.index(data["teacher"]) // 2]
 
         student = Student(
+            id=str(uuid.uuid4()),
             first_name=data["first_name"],
             last_name=data["last_name"],
             grade_level=data["grade"],
@@ -269,6 +285,7 @@ async def seed_audio_files(
     for student in students[:5]:  # First 5 students only for demo
         for i in range(2):
             audio_file = AudioFile(
+                id=str(uuid.uuid4()),
                 student_id=student.id,
                 file_path=f"gs://mass-audio-dev/{student.id}/audio_{uuid.uuid4()}.wav",
                 duration_seconds=15.5 + i * 5,
@@ -284,6 +301,7 @@ async def seed_audio_files(
                 await session.flush()  # Get audio_file.id
 
                 transcript = Transcript(
+                    id=str(uuid.uuid4()),
                     audio_file_id=audio_file.id,
                     text=sample_texts[len(transcripts) % len(sample_texts)],
                     confidence=0.92 + (i * 0.03),
@@ -319,6 +337,7 @@ async def seed_game_sessions(
     for student in students[:3]:
         for session_num in range(2):
             game_session = GameSession(
+                id=str(uuid.uuid4()),
                 student_id=student.id,
                 game_type="word_builder",
                 start_time=datetime.utcnow() - timedelta(days=session_num * 3),
@@ -334,6 +353,7 @@ async def seed_game_sessions(
             # Add telemetry events
             for event_num in range(5):
                 telemetry = GameTelemetry(
+                    id=str(uuid.uuid4()),
                     session_id=game_session.id,
                     event_type="word_attempt",
                     event_data={
@@ -365,6 +385,7 @@ async def seed_assessments(session: AsyncSession, students: list[Student]):
     for student in students[:3]:
         for skill in skills:
             assessment = SkillAssessment(
+                id=str(uuid.uuid4()),
                 student_id=student.id,
                 skill_name=skill,
                 proficiency_level=2 + (hash(student.id) % 3),  # Level 2-4
