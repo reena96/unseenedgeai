@@ -328,7 +328,8 @@ class TestTranscriptionEndpoints:
             assert data["student_id"] == test_student.id
             assert data["transcription_status"] == "pending"
 
-    def test_upload_audio_student_not_found(self, client, auth_headers):
+    @pytest.mark.asyncio
+    async def test_upload_audio_student_not_found(self, async_client, auth_headers):
         """Test upload with non-existent student."""
         file_content = b"fake audio data"
         files = {"file": ("test.wav", BytesIO(file_content), "audio/wav")}
@@ -337,7 +338,7 @@ class TestTranscriptionEndpoints:
             "source_type": "classroom",
         }
 
-        response = client.post(
+        response = await async_client.post(
             "/api/v1/audio/upload",
             files=files,
             data=data,
