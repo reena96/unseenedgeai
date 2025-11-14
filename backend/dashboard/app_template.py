@@ -93,7 +93,7 @@ class SkillAssessmentAPI:
         """Get assessments for multiple students"""
         try:
             response = requests.post(
-                f"{self.base_url}/infer/batch",
+                f"{self.base_url}/infer-batch",
                 json={"student_ids": student_ids},
                 timeout=self.timeout * 2,  # Batch operations get more time
             )
@@ -293,6 +293,25 @@ def main():
     # AUTHENTICATION
     # ========================================================================
 
+    # Show login banner at the top
+    if (
+        "authentication_status" not in st.session_state
+        or st.session_state.get("authentication_status") is None
+    ):
+        st.markdown(
+            """
+        <div style='background-color: #e3f2fd; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2196F3;'>
+            <h2 style='margin: 0; color: #1976D2;'>🎓 Welcome to UnseenEdge AI Dashboard</h2>
+            <p style='margin: 10px 0 0 0; font-size: 16px;'>
+                <strong>Demo Credentials:</strong><br>
+                👤 Username: <code style='background: white; padding: 4px 8px; border-radius: 4px;'>teacher</code><br>
+                🔑 Password: <code style='background: white; padding: 4px 8px; border-radius: 4px;'>password123</code>
+            </p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
     # Load authentication config
     # In production, use hashed passwords from environment variables or secure storage
     auth_config = {
@@ -301,9 +320,8 @@ def main():
                 os.getenv("DASHBOARD_USER", "teacher"): {
                     "name": os.getenv("DASHBOARD_NAME", "Teacher"),
                     "password": os.getenv(
-                        "DASHBOARD_PASSWORD_HASH",
-                        "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-                    ),  # Default: 'password123'
+                        "DASHBOARD_PASSWORD", "password123"
+                    ),  # Plain text, will be auto-hashed
                 }
             }
         },
@@ -317,25 +335,27 @@ def main():
     }
 
     authenticator = stauth.Authenticate(
-        auth_config["credentials"],
-        auth_config["cookie"]["name"],
-        auth_config["cookie"]["key"],
-        auth_config["cookie"]["expiry_days"],
+        credentials=auth_config["credentials"],
+        cookie_name=auth_config["cookie"]["name"],
+        cookie_key=auth_config["cookie"]["key"],
+        cookie_expiry_days=auth_config["cookie"]["expiry_days"],
+        auto_hash=True,  # Auto-hash plain text passwords on first run
     )
 
-    # Login widget
-    name, authentication_status, username = authenticator.login(
-        "Login to UnseenEdge Dashboard", "main"
-    )
+    # Login widget (v0.4.2+ returns None, use session state instead)
+    authenticator.login(location="main")
+
+    # Get authentication details from session state
+    name = st.session_state.get("name")
+    authentication_status = st.session_state.get("authentication_status")
+    username = st.session_state.get("username")
 
     # Handle authentication status
     if authentication_status == False:
-        st.error("Username/password is incorrect")
-        st.info("Default credentials - Username: teacher, Password: password123")
+        st.error("❌ Username/password is incorrect")
         st.stop()
     elif authentication_status == None:
-        st.warning("Please enter your username and password")
-        st.info("Default credentials - Username: teacher, Password: password123")
+        st.warning("⚠️ Please enter your username and password")
         st.stop()
 
     # Initialize API client (only if authenticated)
@@ -348,7 +368,7 @@ def main():
     # Sidebar - User info and logout
     with st.sidebar:
         st.write(f"Welcome *{name}*")
-        authenticator.logout("Logout", "sidebar")
+        authenticator.logout(button_name="Logout", location="sidebar")
         st.markdown("---")
 
         st.header("System Status")
@@ -388,7 +408,9 @@ def main():
 
         # Student selection
         student_options = {
-            s["student_id"]: s.get("name", s["student_id"]) for s in students
+            s["id"]: f"{s.get('first_name', '')} {s.get('last_name', '')}".strip()
+            or s["id"]
+            for s in students
         }
         selected_student = st.selectbox(
             "Select Student:",
@@ -494,7 +516,7 @@ def main():
         st.info(f"Found {len(students)} students")
 
         if st.button("📊 Analyze All Students", type="primary"):
-            student_ids = [s["student_id"] for s in students[:100]]  # Max 100
+            student_ids = [s["id"] for s in students[:100]]  # Max 100
 
             with st.spinner(f"Analyzing {len(student_ids)} students..."):
                 batch_results = api.get_batch_assessments(student_ids)
@@ -571,7 +593,9 @@ def main():
             return
 
         student_options = {
-            s["student_id"]: s.get("name", s["student_id"]) for s in students
+            s["id"]: f"{s.get('first_name', '')} {s.get('last_name', '')}".strip()
+            or s["id"]
+            for s in students
         }
         selected_student = st.selectbox(
             "Select Student:",

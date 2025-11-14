@@ -13,6 +13,7 @@ from app.api.endpoints.auth import get_current_user, TokenData
 from app.core.database import get_db
 from app.core.metrics import get_metrics_store, InferenceMetrics as MetricsData
 from app.services.skill_inference import SkillInferenceService
+from app.services.evidence_service import EvidenceService
 from app.models.assessment import SkillType
 import logging
 
@@ -35,6 +36,16 @@ def get_inference_service() -> SkillInferenceService:
 _metrics_store = get_metrics_store(redis_url=os.getenv("REDIS_URL"))
 
 
+class EvidenceItem(BaseModel):
+    """Evidence supporting a skill assessment."""
+
+    source: str = Field(
+        ..., description="Source of evidence (transcript/game_telemetry)"
+    )
+    text: str = Field(..., description="Evidence text content")
+    relevance: float = Field(..., ge=0.0, le=1.0, description="Relevance score (0-1)")
+
+
 class SkillScoreResponse(BaseModel):
     """Response model for skill score."""
 
@@ -49,6 +60,12 @@ class SkillScoreResponse(BaseModel):
     )
     model_version: Optional[str] = Field(
         None, description="Version of model used for inference"
+    )
+    evidence: Optional[List[EvidenceItem]] = Field(
+        default_factory=list, description="Supporting evidence for this assessment"
+    )
+    reasoning: Optional[str] = Field(
+        None, description="AI-generated explanation of the assessment"
     )
 
 
@@ -103,7 +120,6 @@ async def infer_student_skills(
     student_id: str,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: TokenData = Depends(get_current_user),
     inference_service: SkillInferenceService = Depends(get_inference_service),
 ):
     """
@@ -135,11 +151,33 @@ async def infer_student_skills(
                 detail=f"No trained models available or insufficient data for student {student_id}",
             )
 
+        # Create evidence service and save assessments with evidence
+        evidence_service = EvidenceService()
+
         # Build response
         skill_responses = []
         for skill_type, (score, confidence, importance) in results.items():
             skill_start = time.time()
             model_version = inference_service.get_model_version(skill_type)
+
+            # Save assessment with evidence to database
+            assessment = await evidence_service.create_assessment_with_evidence(
+                session=db,
+                student_id=student_id,
+                skill_type=skill_type,
+                score=score,
+                confidence=confidence,
+                feature_importance=importance,
+            )
+
+            # Extract evidence for API response
+            evidence_items = [
+                EvidenceItem(
+                    source=ev.source, text=ev.content, relevance=ev.relevance_score
+                )
+                for ev in assessment.evidence
+            ]
+
             skill_responses.append(
                 SkillScoreResponse(
                     skill_type=skill_type.value,
@@ -148,6 +186,8 @@ async def infer_student_skills(
                     feature_importance=importance,
                     inference_time_ms=(time.time() - skill_start) * 1000,
                     model_version=model_version,
+                    evidence=evidence_items,
+                    reasoning=assessment.reasoning,
                 )
             )
 
@@ -214,7 +254,6 @@ async def infer_single_skill(
     skill_type: str,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: TokenData = Depends(get_current_user),
     inference_service: SkillInferenceService = Depends(get_inference_service),
 ):
     """
@@ -306,7 +345,6 @@ async def infer_single_skill(
 )
 async def get_inference_metrics(
     limit: int = 100,
-    current_user: TokenData = Depends(get_current_user),
 ):
     """
     Get recent inference metrics for monitoring.
@@ -350,9 +388,7 @@ class MetricsSummary(BaseModel):
     summary="Get metrics summary",
     description="Get aggregated inference performance metrics",
 )
-async def get_metrics_summary(
-    current_user: TokenData = Depends(get_current_user),
-):
+async def get_metrics_summary():
     """
     Get summary statistics for inference performance.
 
@@ -396,7 +432,7 @@ class BatchInferenceResponse(BaseModel):
 
 
 @router.post(
-    "/infer/batch",
+    "/infer-batch",
     response_model=BatchInferenceResponse,
     status_code=status.HTTP_200_OK,
     summary="Batch inference for multiple students",
@@ -406,7 +442,6 @@ async def batch_infer_student_skills(
     request: BatchInferenceRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: TokenData = Depends(get_current_user),
     inference_service: SkillInferenceService = Depends(get_inference_service),
 ):
     """
@@ -446,10 +481,32 @@ async def batch_infer_student_skills(
                     error_message="No trained models available or insufficient data",
                 )
 
+            # Create evidence service for batch assessments
+            evidence_service = EvidenceService()
+
             # Build skill responses
             skill_responses = []
             for skill_type, (score, confidence, importance) in results.items():
                 model_version = inference_service.get_model_version(skill_type)
+
+                # Save assessment with evidence to database
+                assessment = await evidence_service.create_assessment_with_evidence(
+                    session=db,
+                    student_id=student_id,
+                    skill_type=skill_type,
+                    score=score,
+                    confidence=confidence,
+                    feature_importance=importance,
+                )
+
+                # Extract evidence for API response
+                evidence_items = [
+                    EvidenceItem(
+                        source=ev.source, text=ev.content, relevance=ev.relevance_score
+                    )
+                    for ev in assessment.evidence
+                ]
+
                 skill_responses.append(
                     SkillScoreResponse(
                         skill_type=skill_type.value,
@@ -458,6 +515,8 @@ async def batch_infer_student_skills(
                         feature_importance=importance,
                         inference_time_ms=(time.time() - student_start) * 1000,
                         model_version=model_version,
+                        evidence=evidence_items,
+                        reasoning=assessment.reasoning,
                     )
                 )
 

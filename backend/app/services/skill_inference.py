@@ -4,6 +4,7 @@ import logging
 import os
 import joblib
 import numpy as np
+import xgboost as xgb
 from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,9 +47,12 @@ class SkillInferenceService:
         # Skill types to model
         self.skill_types = [
             SkillType.EMPATHY,
+            SkillType.ADAPTABILITY,
             SkillType.PROBLEM_SOLVING,
             SkillType.SELF_REGULATION,
             SkillType.RESILIENCE,
+            SkillType.COMMUNICATION,
+            SkillType.COLLABORATION,
         ]
 
         self._load_models()
@@ -236,13 +240,16 @@ class SkillInferenceService:
             # Component 1: Tree prediction variance (if available)
             if hasattr(model, "get_booster"):
                 try:
+                    # Convert features to DMatrix for XGBoost
+                    dmatrix = xgb.DMatrix(features.reshape(1, -1))
+
                     # Get predictions from all trees
                     booster = model.get_booster()
                     # Predict with each tree individually
                     tree_preds = []
                     for tree_idx in range(model.n_estimators):
                         pred = booster.predict(
-                            features,
+                            dmatrix,
                             iteration_range=(tree_idx, tree_idx + 1),
                             output_margin=False,
                         )
@@ -250,45 +257,60 @@ class SkillInferenceService:
 
                     # Calculate variance of tree predictions
                     tree_variance = np.var(tree_preds)
+                    tree_std = np.std(tree_preds)
 
                     # Convert variance to confidence (lower variance = higher confidence)
                     # Normalize variance to 0-1 range (empirically tuned)
                     var_confidence = 1.0 / (1.0 + 10 * tree_variance)
                     confidence_components.append(var_confidence)
 
+                    # Store variance for weighting adjustment
+                    has_meaningful_variance = tree_variance > 0.0001
+
                     logger.debug(
                         f"Tree variance: {tree_variance:.4f}, "
+                        f"std: {tree_std:.4f}, "
                         f"var_confidence: {var_confidence:.3f}"
                     )
                 except Exception as e:
                     logger.debug(f"Could not calculate tree variance: {e}")
 
-            # Component 2: Prediction extremity
-            # Predictions very close to 0 or 1 are less reliable
-            # Confidence peaks at mid-range values
-            distance_from_edges = min(prediction, 1 - prediction)
-            # Peak confidence at 0.3-0.7 range
-            if distance_from_edges < 0.2:
-                extremity_confidence = 0.5 + 2.5 * distance_from_edges
-            else:
-                extremity_confidence = 1.0
-            confidence_components.append(extremity_confidence)
+            # Component 2: Prediction-based confidence
+            # Use the prediction value itself to modulate confidence
+            # Scores closer to 0.5 indicate more uncertainty
+            # Scores near 0 or 1 indicate stronger signal (either very low or very high skill)
+            distance_from_midpoint = abs(prediction - 0.5)
+            # Map 0-0.5 range to confidence: 0.65-0.95
+            score_confidence = 0.65 + 0.6 * distance_from_midpoint
+            confidence_components.append(score_confidence)
 
             # Component 3: Feature completeness
             # Check how many features are non-zero (indicates data richness)
             non_zero_features = np.count_nonzero(features)
             feature_completeness = non_zero_features / EXPECTED_FEATURE_COUNT
             # Confidence increases with feature completeness
-            completeness_confidence = 0.5 + 0.5 * feature_completeness
+            completeness_confidence = 0.7 + 0.3 * feature_completeness
             confidence_components.append(completeness_confidence)
 
             # Combine confidence components (weighted average)
+            # Adjust weights based on whether tree variance is meaningful
             if len(confidence_components) >= 3:
                 # All three components available
-                weights = [0.5, 0.3, 0.2]  # Variance most important
+                # If variance is near zero, rely more on score-based confidence
+                if (
+                    "has_meaningful_variance" in locals()
+                    and not has_meaningful_variance
+                ):
+                    weights = [
+                        0.2,
+                        0.6,
+                        0.2,
+                    ]  # Score-based most important when no variance
+                else:
+                    weights = [0.5, 0.3, 0.2]  # Variance most important when available
             elif len(confidence_components) == 2:
-                # No variance, use extremity and completeness
-                weights = [0.6, 0.4]
+                # No variance, use score and completeness
+                weights = [0.7, 0.3]
             else:
                 # Only one component
                 weights = [1.0]
@@ -368,38 +390,33 @@ class SkillInferenceService:
 
         logger.info(f"Inferring {skill_type.value} for student {student_id}")
 
-        # Optimized: Fetch student existence check and both feature types in parallel
-        # This reduces database round-trips from 3 sequential to 2 parallel queries
-        import asyncio
+        # Fetch student and features sequentially
+        # Note: SQLAlchemy async sessions don't support concurrent operations
 
         # Check student exists (lightweight query)
-        student_task = session.execute(
+        student_result = await session.execute(
             select(Student.id).where(Student.id == student_id)
         )
 
-        # Fetch both feature types in parallel
-        ling_task = session.execute(
+        # Check student exists
+        if not student_result.scalar_one_or_none():
+            raise ValueError(f"Student {student_id} not found")
+
+        # Fetch linguistic features
+        ling_result = await session.execute(
             select(LinguisticFeatures)
             .where(LinguisticFeatures.student_id == student_id)
             .order_by(LinguisticFeatures.created_at.desc())
             .limit(1)
         )
 
-        beh_task = session.execute(
+        # Fetch behavioral features
+        beh_result = await session.execute(
             select(BehavioralFeatures)
             .where(BehavioralFeatures.student_id == student_id)
             .order_by(BehavioralFeatures.created_at.desc())
             .limit(1)
         )
-
-        # Wait for all queries to complete
-        student_result, ling_result, beh_result = await asyncio.gather(
-            student_task, ling_task, beh_task
-        )
-
-        # Check student exists
-        if not student_result.scalar_one_or_none():
-            raise ValueError(f"Student {student_id} not found")
 
         # Extract features
         linguistic_features = ling_result.scalar_one_or_none()
