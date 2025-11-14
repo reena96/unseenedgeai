@@ -68,6 +68,7 @@ htmlcov/
 tmp/
 temp/
 *.tmp
+*.bak
 
 logs
 dev-debug.log
