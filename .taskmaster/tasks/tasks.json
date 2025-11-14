@@ -642,7 +642,7 @@
         "description": "Design game telemetry specification and validate multi-modal fusion model with synthetic data",
         "details": "Week 11-12 deliverables: (1) Game telemetry specification document (event types, JSON schema) for 3 missions. (2) Map game choices to skill indicators (empathy choices, delegation patterns, persistence after failure, etc.). (3) Synthetic game data generator (Python script, 300 fake players with varied skill levels). (4) Extract behavioral features from synthetic game data (task completion rate, retry patterns, delegation fairness, persistence score). (5) Design multi-source fusion algorithm (transcript + game + teacher). (6) Test different weighting schemes. (7) Determine optimal skill-specific fusion weights. (8) Document fusion approach.",
         "testStrategy": "Synthetic data generator produces valid events, behavioral features extracted correctly, fusion model combines sources with skill-specific weights, validation on synthetic data successful",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           20
         ],
@@ -654,7 +654,7 @@
             "description": "Develop a detailed telemetry specification document for 3 game missions.",
             "dependencies": [],
             "details": "Define event types and JSON schema for each mission. Ensure coverage of all gameplay elements.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Review document completeness and accuracy against game design requirements."
           },
           {
@@ -665,7 +665,7 @@
               1
             ],
             "details": "Analyze game mechanics to map choices like empathy, delegation, and persistence to skill indicators.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate mappings with game designers and psychologists."
           },
           {
@@ -677,7 +677,7 @@
               2
             ],
             "details": "Script should simulate varied skill levels and generate data according to the telemetry specification.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify data generation accuracy and diversity through statistical analysis."
           },
           {
@@ -688,7 +688,7 @@
               3
             ],
             "details": "Focus on task completion rate, retry patterns, delegation fairness, and persistence score.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Ensure feature extraction aligns with defined metrics and validate with sample data."
           },
           {
@@ -699,7 +699,7 @@
               4
             ],
             "details": "Design algorithm to integrate transcript, game, and teacher data. Test different weighting schemes for optimal results.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Evaluate fusion accuracy using synthetic data and adjust weights for skill-specific optimization."
           }
         ]
@@ -710,7 +710,7 @@
         "description": "Complete Phase 0 final report and make GO/NO-GO decision for Phase 1",
         "details": "Week 13-14 deliverables: (1) Calculate Krippendorff's Alpha for each skill with confusion matrices. (2) Calculate correlation: features → ground truth (target: avg r ≥ 0.45). (3) Compute model performance metrics (MAE, RMSE). (4) Rank feature importance for each skill. (5) Document optimal fusion weights (transcript vs game vs teacher, per skill). (6) Design confidence scoring approach. (7) Design evidence extraction strategy. (8) External statistician validation review. (9) Phase 0 Final Report with GO/NO-GO recommendation. (10) If GO: Create detailed Phase 1 plan. DECISION GATE: MUST meet all GO criteria (IRR ≥0.75, correlation ≥0.45, <5% unusable, ≥280 per skill).",
         "testStrategy": "All GO criteria met (IRR ≥0.75, avg correlation ≥0.45, <5% unusable segments, ≥280 annotations per skill), external validation confirms findings, Phase 0 report complete",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           21
         ],
@@ -722,7 +722,7 @@
             "description": "Compute Krippendorff's Alpha using confusion matrices for each skill.",
             "dependencies": [],
             "details": "Use existing confusion matrices to calculate Krippendorff's Alpha for each skill to ensure IRR ≥ 0.75.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify IRR ≥ 0.75 for all skills."
           },
           {
@@ -731,7 +731,7 @@
             "description": "Analyze correlation between features and ground truth with a target average r ≥ 0.45.",
             "dependencies": [],
             "details": "Perform correlation analysis to ensure average correlation meets or exceeds 0.45.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Check if average correlation r ≥ 0.45."
           },
           {
@@ -740,7 +740,7 @@
             "description": "Evaluate model performance using MAE and RMSE metrics.",
             "dependencies": [],
             "details": "Calculate Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) for model evaluation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Ensure metrics are within acceptable range."
           },
           {
@@ -749,7 +749,7 @@
             "description": "Determine and rank the importance of features for each skill.",
             "dependencies": [],
             "details": "Use model outputs to rank feature importance for each skill.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate ranking with model performance."
           },
           {
@@ -758,7 +758,7 @@
             "description": "Identify and document optimal fusion weights for transcripts, games, and teacher inputs per skill.",
             "dependencies": [],
             "details": "Analyze data to determine optimal fusion weights and document findings.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Review documentation for accuracy and completeness."
           },
           {
@@ -773,7 +773,7 @@
               5
             ],
             "details": "Integrate all analysis results into the Phase 0 final report and evaluate against GO criteria.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Ensure report meets all GO criteria and is validated by an external statistician."
           }
         ]
@@ -785,9 +785,7 @@
         "details": "Week 17-20 deliverables: (1) Initialize Unity 2022.3 LTS project with Git LFS for assets. (2) Install core packages (Cinemachine, TextMeshPro, Input System). (3) Create project architecture (scene management, state management, save system). (4) Purchase Academy Courtyard environment from Unity Asset Store ($600). (5) Create Mentor Maya 3D model (low-poly, stylized, wise guide character). (6) Create Alex 2D sprite with 5 emotional states (happy, sad, anxious, isolated, hopeful). (7) Implement dialogue system with branching conversations. (8) Implement 5 choice points (empathetic vs self-focused responses). (9) Integrate telemetry: choice selection, time spent on dialogue, re-reading behavior, help-seeking. (10) Polish with lighting, sound effects, UI. (11) Add accessibility: adjustable text size, colorblind mode, keyboard navigation. (12) Test Mission 1 end-to-end (10-12 min playtime).",
         "testStrategy": "Mission 1 playable in 10-12 minutes, all 5 choice points functional, telemetry events fire correctly, accessibility features tested, game builds on Windows/Mac",
         "status": "pending",
-        "dependencies": [
-          22
-        ],
+        "dependencies": [],
         "priority": "high",
         "subtasks": []
       },
@@ -1407,7 +1405,7 @@
     ],
     "metadata": {
       "created": "2025-11-12T06:31:05.563Z",
-      "updated": "2025-11-14T04:56:54.238Z",
+      "updated": "2025-11-14T11:37:08.976Z",
       "description": "Tasks for master context"
     }
   }
