@@ -12,6 +12,19 @@ from app.models.features import LinguisticFeatures, BehavioralFeatures
 from app.models.student import Student
 
 
+# Picklable mock model class for tests
+class MockModel:
+    """Mock ML model that can be pickled by joblib."""
+
+    def __init__(self, n_features=26):
+        # Generate feature importances that sum to 1.0
+        importances = np.random.rand(n_features)
+        self.feature_importances_ = importances / importances.sum()
+
+    def predict(self, X):
+        return np.array([0.75] * len(X))
+
+
 class TestSkillInferenceService:
     """Test SkillInferenceService."""
 
@@ -23,19 +36,14 @@ class TestSkillInferenceService:
 
         # Create mock XGBoost models
         for skill_type in [SkillType.EMPATHY, SkillType.PROBLEM_SOLVING]:
-            model = Mock()
-            model.predict = Mock(return_value=np.array([0.75]))
-            model.feature_importances_ = np.array([0.1, 0.2, 0.3, 0.15, 0.25])
+            model = MockModel(n_features=26)
 
             model_path = models_dir / f"{skill_type.value}_model.pkl"
             joblib.dump(model, model_path)
 
-            # Feature names
+            # Feature names (26 features matching production)
             features_path = models_dir / f"{skill_type.value}_features.pkl"
-            joblib.dump(
-                ["feature_1", "feature_2", "feature_3", "feature_4", "feature_5"],
-                features_path,
-            )
+            joblib.dump([f"feature_{i}" for i in range(26)], features_path)
 
         return str(models_dir)
 
@@ -200,7 +208,9 @@ class TestSkillInferenceService:
         model = service.models[SkillType.EMPATHY]
         features = np.array([[0.5] * 26])
 
-        confidence = service._calculate_confidence(model, features, 0.75)
+        confidence = service._calculate_confidence(
+            model, features, 0.75, SkillType.EMPATHY
+        )
 
         assert 0.0 <= confidence <= 1.0
 
@@ -212,4 +222,4 @@ class TestSkillInferenceService:
         importance = service._get_feature_importance(model, features, SkillType.EMPATHY)
 
         assert isinstance(importance, dict)
-        assert len(importance) == 5  # Model has 5 features
+        assert len(importance) == 26  # Model has 26 features

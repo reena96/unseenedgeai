@@ -18,6 +18,17 @@ from app.models.student import Student
 pytestmark = pytest.mark.slow
 
 
+# Picklable mock model class for performance tests
+class MockModel:
+    """Mock ML model that can be pickled by joblib."""
+
+    def __init__(self):
+        self.feature_importances_ = np.random.rand(26)
+
+    def predict(self, X):
+        return np.array([0.75] * len(X))
+
+
 class TestPerformanceBenchmarks:
     """Performance benchmarks for the assessment system."""
 
@@ -33,9 +44,7 @@ class TestPerformanceBenchmarks:
             SkillType.SELF_REGULATION,
             SkillType.RESILIENCE,
         ]:
-            model = Mock()
-            model.predict = Mock(return_value=np.array([0.75]))
-            model.feature_importances_ = np.random.rand(26)
+            model = MockModel()
 
             model_path = models_dir / f"{skill_type.value}_model.pkl"
             joblib.dump(model, model_path)

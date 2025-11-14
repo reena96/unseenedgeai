@@ -16,6 +16,17 @@ from app.models.features import LinguisticFeatures, BehavioralFeatures
 from app.models.student import Student
 
 
+# Picklable mock model class for tests
+class MockModel:
+    """Mock ML model that can be pickled by joblib."""
+
+    def __init__(self):
+        self.feature_importances_ = np.random.rand(26)
+
+    def predict(self, X):
+        return np.array([0.75] * len(X))
+
+
 class TestAssessmentPipeline:
     """Integration tests for end-to-end assessment pipeline."""
 
@@ -32,9 +43,7 @@ class TestAssessmentPipeline:
             SkillType.SELF_REGULATION,
             SkillType.RESILIENCE,
         ]:
-            model = Mock()
-            model.predict = Mock(return_value=np.array([0.75]))
-            model.feature_importances_ = np.random.rand(26)  # 26 features
+            model = MockModel()
 
             model_path = models_dir / f"{skill_type.value}_model.pkl"
             joblib.dump(model, model_path)
