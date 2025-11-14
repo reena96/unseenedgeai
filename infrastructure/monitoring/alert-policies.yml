@@ -1,0 +1,167 @@
+# Google Cloud Monitoring Alert Policies for MASS Platform
+# Deploy with: gcloud alpha monitoring policies create --policy-from-file=alert-policies.yml
+
+policies:
+  - display_name: "High API Error Rate"
+    documentation:
+      content: "API error rate has exceeded 5 errors per minute"
+      mime_type: "text/markdown"
+    conditions:
+      - display_name: "Error rate > 5/min"
+        condition_threshold:
+          filter: |
+            resource.type="cloud_run_revision"
+            AND resource.labels.service_name="mass-api"
+            AND metric.type="logging.googleapis.com/log_entry_count"
+            AND severity>=ERROR
+          aggregations:
+            - alignment_period: "60s"
+              per_series_aligner: "ALIGN_RATE"
+          comparison: "COMPARISON_GT"
+          threshold_value: 5
+          duration: "300s"
+    alert_strategy:
+      auto_close: "1800s"
+    notification_channels: []
+    severity: "ERROR"
+
+  - display_name: "High API Latency"
+    documentation:
+      content: "API p95 latency has exceeded 1 second"
+      mime_type: "text/markdown"
+    conditions:
+      - display_name: "Latency > 1s"
+        condition_threshold:
+          filter: |
+            resource.type="cloud_run_revision"
+            AND resource.labels.service_name="mass-api"
+            AND metric.type="run.googleapis.com/request_latencies"
+          aggregations:
+            - alignment_period: "60s"
+              per_series_aligner: "ALIGN_DELTA"
+              cross_series_reducer: "REDUCE_PERCENTILE_95"
+          comparison: "COMPARISON_GT"
+          threshold_value: 1000
+          duration: "300s"
+    notification_channels: []
+    severity: "WARNING"
+
+  - display_name: "High CPU Utilization"
+    documentation:
+      content: "Container CPU utilization has exceeded 90%"
+      mime_type: "text/markdown"
+    conditions:
+      - display_name: "CPU > 90%"
+        condition_threshold:
+          filter: |
+            resource.type="cloud_run_revision"
+            AND metric.type="run.googleapis.com/container/cpu/utilizations"
+          aggregations:
+            - alignment_period: "60s"
+              per_series_aligner: "ALIGN_MEAN"
+          comparison: "COMPARISON_GT"
+          threshold_value: 0.9
+          duration: "300s"
+    notification_channels: []
+    severity: "WARNING"
+
+  - display_name: "High Memory Utilization"
+    documentation:
+      content: "Container memory utilization has exceeded 85%"
+      mime_type: "text/markdown"
+    conditions:
+      - display_name: "Memory > 85%"
+        condition_threshold:
+          filter: |
+            resource.type="cloud_run_revision"
+            AND metric.type="run.googleapis.com/container/memory/utilizations"
+          aggregations:
+            - alignment_period: "60s"
+              per_series_aligner: "ALIGN_MEAN"
+          comparison: "COMPARISON_GT"
+          threshold_value: 0.85
+          duration: "300s"
+    notification_channels: []
+    severity: "WARNING"
+
+  - display_name: "Service Unavailable"
+    documentation:
+      content: "Cloud Run service is not responding to health checks"
+      mime_type: "text/markdown"
+    conditions:
+      - display_name: "Health check failures"
+        condition_threshold:
+          filter: |
+            resource.type="cloud_run_revision"
+            AND metric.type="run.googleapis.com/request_count"
+            AND metric.labels.response_code_class="5xx"
+          aggregations:
+            - alignment_period: "60s"
+              per_series_aligner: "ALIGN_RATE"
+          comparison: "COMPARISON_GT"
+          threshold_value: 10
+          duration: "180s"
+    notification_channels: []
+    severity: "CRITICAL"
+
+  - display_name: "Database Connection Failures"
+    documentation:
+      content: "Unable to connect to Cloud SQL database"
+      mime_type: "text/markdown"
+    conditions:
+      - display_name: "DB connection errors"
+        condition_threshold:
+          filter: |
+            resource.type="cloud_run_revision"
+            AND log_text:"database connection"
+            AND severity>=ERROR
+          aggregations:
+            - alignment_period: "60s"
+              per_series_aligner: "ALIGN_RATE"
+          comparison: "COMPARISON_GT"
+          threshold_value: 1
+          duration: "180s"
+    notification_channels: []
+    severity: "CRITICAL"
+
+  - display_name: "Cost Budget Alert"
+    documentation:
+      content: "Cloud spend has exceeded 80% of monthly budget"
+      mime_type: "text/markdown"
+    conditions:
+      - display_name: "Budget > 80%"
+        condition_threshold:
+          filter: |
+            resource.type="billing_account"
+            AND metric.type="billing.googleapis.com/project/costs"
+          aggregations:
+            - alignment_period: "86400s"
+              per_series_aligner: "ALIGN_SUM"
+          comparison: "COMPARISON_GT"
+          threshold_value: 800  # Adjust based on actual budget
+          duration: "0s"
+    notification_channels: []
+    severity: "WARNING"
+
+notification_channels:
+  - type: "email"
+    display_name: "Engineering Team Email"
+    description: "Email notifications for critical alerts"
+    labels:
+      email_address: "engineering@unseenedgeai.com"
+    enabled: true
+
+  - type: "slack"
+    display_name: "Slack #alerts Channel"
+    description: "Slack notifications for all alerts"
+    labels:
+      channel_name: "#alerts"
+      url: "${SLACK_WEBHOOK_URL}"
+    enabled: true
+
+  - type: "pagerduty"
+    display_name: "PagerDuty On-Call"
+    description: "PagerDuty for critical incidents"
+    labels:
+      service_key: "${PAGERDUTY_SERVICE_KEY}"
+    enabled: true

@@ -1,0 +1,143 @@
+name: Monitoring and Health Checks
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+
+jobs:
+  health-check:
+    name: Service Health Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Check Backend API Health
+        id: backend-health
+        run: |
+          BACKEND_URL=$(gcloud run services describe mass-api \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' || echo "")
+
+          if [ -z "$BACKEND_URL" ]; then
+            echo "❌ Backend service not found"
+            echo "status=down" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if curl -f -s "${BACKEND_URL}/api/v1/health" > /dev/null; then
+            echo "✅ Backend API is healthy"
+            echo "status=up" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Backend API health check failed"
+            echo "status=down" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check Frontend Health
+        id: frontend-health
+        run: |
+          FRONTEND_URL=$(gcloud run services describe mass-frontend \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' || echo "")
+
+          if [ -z "$FRONTEND_URL" ]; then
+            echo "❌ Frontend service not found"
+            echo "status=down" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if curl -f -s "${FRONTEND_URL}" > /dev/null; then
+            echo "✅ Frontend is healthy"
+            echo "status=up" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Frontend health check failed"
+            echo "status=down" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check Database Connectivity
+        run: |
+          echo "Checking Cloud SQL connectivity..."
+          gcloud sql instances describe mass-db \
+            --format 'value(state)' || echo "Database not found"
+
+      - name: Alert on Failures
+        if: steps.backend-health.outputs.status == 'down' || steps.frontend-health.outputs.status == 'down'
+        run: |
+          echo "::error::One or more services are down!"
+          # Add PagerDuty or Slack notification here
+          exit 1
+
+  performance-check:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Check API Response Times
+        run: |
+          BACKEND_URL=$(gcloud run services describe mass-api \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' || echo "")
+
+          if [ -n "$BACKEND_URL" ]; then
+            RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}\n' "${BACKEND_URL}/api/v1/health")
+            echo "API Response Time: ${RESPONSE_TIME}s"
+
+            # Alert if response time > 2 seconds
+            if (( $(echo "$RESPONSE_TIME > 2.0" | bc -l) )); then
+              echo "::warning::API response time is high: ${RESPONSE_TIME}s"
+            fi
+          fi
+
+      - name: Check Error Rates
+        run: |
+          echo "Checking Cloud Logging for errors..."
+          gcloud logging read \
+            'resource.type="cloud_run_revision" AND severity>=ERROR' \
+            --limit 10 \
+            --format json \
+            --project ${{ env.PROJECT_ID }} || echo "No recent errors"
+
+  cost-monitoring:
+    name: Cost Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Check Current Spend
+        run: |
+          echo "Checking Cloud Run costs..."
+          # Note: Requires billing API access
+          gcloud beta billing projects describe ${{ env.PROJECT_ID }} \
+            --format 'value(billingAccountName)' || echo "Billing info not available"
+
+      - name: Check Resource Usage
+        run: |
+          echo "Cloud Run services:"
+          gcloud run services list --platform managed --region ${{ env.REGION }}
+
+          echo "\nCloud SQL instances:"
+          gcloud sql instances list || echo "No SQL instances"
+
+          echo "\nCloud Storage buckets:"
+          gcloud storage buckets list --project ${{ env.PROJECT_ID }} || echo "No buckets"

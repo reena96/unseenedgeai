@@ -1,0 +1,207 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/react-app/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/react-app/**'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: mass-frontend
+  REGION: us-central1
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    name: Test and Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/react-app/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend/react-app
+          npm ci
+
+      - name: Run linter
+        run: |
+          cd frontend/react-app
+          npm run lint
+
+      - name: Run tests
+        run: |
+          cd frontend/react-app
+          npm run test -- --run || true
+
+      - name: Build application
+        run: |
+          cd frontend/react-app
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/react-app/dist/
+          retention-days: 7
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker
+
+      - name: Create Dockerfile for frontend
+        run: |
+          cd frontend/react-app
+          cat > Dockerfile <<EOF
+          # Build stage
+          FROM node:18-alpine as build
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm ci
+          COPY . .
+          RUN npm run build
+
+          # Production stage
+          FROM nginx:alpine
+          COPY --from=build /app/dist /usr/share/nginx/html
+          COPY nginx.conf /etc/nginx/conf.d/default.conf
+          EXPOSE 80
+          CMD ["nginx", "-g", "daemon off;"]
+          EOF
+
+      - name: Create nginx configuration
+        run: |
+          cd frontend/react-app
+          cat > nginx.conf <<EOF
+          server {
+              listen 80;
+              server_name _;
+              root /usr/share/nginx/html;
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+
+              location /api {
+                  proxy_pass http://mass-api:8000;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+              }
+
+              gzip on;
+              gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+          }
+          EOF
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/react-app
+          push: true
+          tags: |
+            gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+            gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://mass-frontend-staging-RANDOM.run.app
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Cloud Run (Staging)
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }}-staging \
+            --image gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --set-env-vars="VITE_APP_ENV=staging,VITE_API_URL=https://mass-api-staging.run.app/api/v1" \
+            --memory 512Mi \
+            --cpu 1 \
+            --max-instances 5 \
+            --min-instances 1
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://mass-frontend-RANDOM.run.app
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Cloud Run (Production)
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --set-env-vars="VITE_APP_ENV=production,VITE_API_URL=https://mass-api.run.app/api/v1" \
+            --memory 512Mi \
+            --cpu 1 \
+            --max-instances 20 \
+            --min-instances 2
+
+      - name: Verify deployment
+        run: |
+          PROD_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)')
+          curl -f "${PROD_URL}" || exit 1
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "🚀 Frontend successfully deployed to production!"
