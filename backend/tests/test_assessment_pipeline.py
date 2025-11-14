@@ -1,12 +1,10 @@
 """Integration tests for the complete assessment pipeline."""
 
 import pytest
-import asyncio
 import time
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import Mock, AsyncMock, patch
 import numpy as np
 import joblib
-from pathlib import Path
 
 from app.services.skill_inference import SkillInferenceService
 from app.services.evidence_fusion import EvidenceFusionService
@@ -189,8 +187,9 @@ class TestAssessmentPipeline:
 
         # Setup services
         inference_service = SkillInferenceService(models_dir=mock_models_dir)
-        fusion_service = EvidenceFusionService(inference_service=inference_service)
-        reasoning_service = ReasoningGeneratorService(api_key="test_key")
+        fusion_service = EvidenceFusionService(
+            inference_service=inference_service
+        )  # noqa: F841
 
         # Mock database session
         mock_session = AsyncMock()
@@ -200,14 +199,22 @@ class TestAssessmentPipeline:
             result.scalar_one_or_none = Mock(return_value=value)
             return result
 
-        # Setup multiple query results for all skills
-        query_results = [
-            create_mock_result(student),
-            create_mock_result(ling_features),
-            create_mock_result(beh_features),
-        ] * 8  # 4 skills * 2 queries per skill (for fusion)
+        # Create a smart mock that inspects the query to return the right type
+        async def smart_execute(statement):
+            # Inspect the SQL statement to determine what's being queried
+            statement_str = str(statement)
 
-        mock_session.execute = AsyncMock(side_effect=query_results)
+            if "linguistic_features" in statement_str.lower():
+                return create_mock_result(ling_features)
+            elif "behavioral_features" in statement_str.lower():
+                return create_mock_result(beh_features)
+            elif "student" in statement_str.lower():
+                return create_mock_result(student)
+            else:
+                # Default to student for safety
+                return create_mock_result(student)
+
+        mock_session.execute = smart_execute
 
         # Run pipeline for all skills
         all_results = {}
@@ -301,12 +308,14 @@ class TestAssessmentPipeline:
 
         # Setup services
         inference_service = SkillInferenceService(models_dir=mock_models_dir)
-        fusion_service = EvidenceFusionService(inference_service=inference_service)
+        fusion_service = EvidenceFusionService(  # noqa: F841
+            inference_service=inference_service
+        )
 
         # Mock database session
         mock_session = AsyncMock()
 
-        # Simulate missing features for ML inference
+        # Simulate missing features for ML inference (BOTH missing to trigger error)
         student_result = Mock()
         student_result.scalar_one_or_none = Mock(return_value=student)
 
@@ -314,7 +323,7 @@ class TestAssessmentPipeline:
         ling_result.scalar_one_or_none = Mock(return_value=None)  # Missing!
 
         beh_result = Mock()
-        beh_result.scalar_one_or_none = Mock(return_value=beh_features)
+        beh_result.scalar_one_or_none = Mock(return_value=None)  # Also missing!
 
         mock_session.execute = AsyncMock(
             side_effect=[
@@ -386,15 +395,22 @@ class TestAssessmentPipeline:
             result.scalar_one_or_none = Mock(return_value=value)
             return result
 
-        query_results = [
-            create_mock_result(student),
-            create_mock_result(ling_features),
-            create_mock_result(beh_features),
-            create_mock_result(ling_features),
-            create_mock_result(beh_features),
-        ]
+        # Create a smart mock that inspects the query to return the right type
+        async def smart_execute(statement):
+            # Inspect the SQL statement to determine what's being queried
+            statement_str = str(statement)
 
-        mock_session.execute = AsyncMock(side_effect=query_results)
+            if "linguistic_features" in statement_str.lower():
+                return create_mock_result(ling_features)
+            elif "behavioral_features" in statement_str.lower():
+                return create_mock_result(beh_features)
+            elif "student" in statement_str.lower():
+                return create_mock_result(student)
+            else:
+                # Default to student for safety
+                return create_mock_result(student)
+
+        mock_session.execute = smart_execute
 
         # Collect evidence with timing
         start_time = time.time()
@@ -411,7 +427,5 @@ class TestAssessmentPipeline:
         assert elapsed_time < 1.0
 
         # Verify evidence was collected from multiple sources
-        from app.services.evidence_fusion import EvidenceSource
-
         evidence_sources = {e.source for e in evidence}
         assert len(evidence_sources) > 1  # Should have multiple sources
