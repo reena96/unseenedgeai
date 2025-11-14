@@ -72,18 +72,16 @@ class TelemetryBatchCreate(BaseModel):
         ..., description="List of telemetry events"
     )
     batch_id: UUID4 = Field(..., description="Batch identifier")
-    client_version: str = Field(
-        ..., max_length=20, description="Game client version"
-    )
+    client_version: str = Field(..., max_length=20, description="Game client version")
 
     @field_validator("events")
     @classmethod
-    def validate_batch_size(cls, v: List[TelemetryEventCreate]) -> List[TelemetryEventCreate]:
+    def validate_batch_size(
+        cls, v: List[TelemetryEventCreate]
+    ) -> List[TelemetryEventCreate]:
         """Validate batch is not too large."""
         if len(v) > 1000:
-            raise ValueError(
-                f"Batch too large: {len(v)} events (max 1000)"
-            )
+            raise ValueError(f"Batch too large: {len(v)} events (max 1000)")
         if len(v) == 0:
             raise ValueError("Batch must contain at least one event")
         return v

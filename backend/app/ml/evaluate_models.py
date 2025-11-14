@@ -242,7 +242,9 @@ class ModelEvaluator:
 
         # Log results
         logger.info(f"Results for {skill_type.value}:")
-        logger.info(f"  Pearson r: {correlation_metrics['pearson_r']:.3f} (p={correlation_metrics['pearson_p_value']:.4f})")
+        logger.info(
+            f"  Pearson r: {correlation_metrics['pearson_r']:.3f} (p={correlation_metrics['pearson_p_value']:.4f})"
+        )
         logger.info(f"  Spearman r: {correlation_metrics['spearman_r']:.3f}")
         logger.info(f"  RMSE: {regression_metrics['rmse']:.3f}")
         logger.info(f"  MAE: {regression_metrics['mae']:.3f}")

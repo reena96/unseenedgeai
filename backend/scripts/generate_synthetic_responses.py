@@ -46,9 +46,12 @@ class SyntheticResponseGenerator:
         if use_openai:
             try:
                 from openai import OpenAI
+
                 self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
             except ImportError:
-                print("⚠️  OpenAI library not installed. Install with: pip install openai")
+                print(
+                    "⚠️  OpenAI library not installed. Install with: pip install openai"
+                )
                 self.use_openai = False
 
         # Skill configurations
@@ -208,7 +211,9 @@ Generate {count} responses now:"""
             DataFrame with synthetic responses
         """
         print(f"🤖 Generating {total_count} synthetic student responses...")
-        print(f"   Method: {'OpenAI GPT-4o-mini' if self.use_openai else 'Template Expansion'}")
+        print(
+            f"   Method: {'OpenAI GPT-4o-mini' if self.use_openai else 'Template Expansion'}"
+        )
 
         all_responses = []
 
@@ -218,7 +223,9 @@ Generate {count} responses now:"""
             num_levels = len(self.skill_levels)
             num_grades = len(self.grades)
 
-            samples_per_combo = max(1, total_count // (num_skills * num_levels * num_grades))
+            samples_per_combo = max(
+                1, total_count // (num_skills * num_levels * num_grades)
+            )
 
             # Generate for each combination
             tasks = []
@@ -257,7 +264,9 @@ Generate {count} responses now:"""
                 grade = random.choice(self.grades)
 
                 if self.use_openai:
-                    batch = await self.generate_with_openai(skill, level, grade, count=1)
+                    batch = await self.generate_with_openai(
+                        skill, level, grade, count=1
+                    )
                 else:
                     batch = self.generate_with_templates(skill, level, grade, count=1)
 
@@ -277,9 +286,7 @@ Generate {count} responses now:"""
 
 async def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Generate synthetic student responses"
-    )
+    parser = argparse.ArgumentParser(description="Generate synthetic student responses")
     parser.add_argument(
         "--count",
         type=int,
@@ -321,7 +328,9 @@ async def main():
     # Display sample
     print(f"\n📝 Sample responses:")
     for i, row in df.head(3).iterrows():
-        print(f"\n{i+1}. [{row['skill']}] [{row['skill_level']}] [Grade {row['grade']}]")
+        print(
+            f"\n{i+1}. [{row['skill']}] [{row['skill_level']}] [Grade {row['grade']}]"
+        )
         print(f"   {row['response']}")
 
 

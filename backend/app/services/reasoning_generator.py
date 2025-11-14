@@ -112,12 +112,20 @@ class ReasoningGeneratorService:
             SkillType.EMPATHY: {
                 "name": "Empathy",
                 "description": "Understanding and sharing the feelings of others",
-                "key_aspects": ["perspective-taking", "emotional awareness", "caring responses"],
+                "key_aspects": [
+                    "perspective-taking",
+                    "emotional awareness",
+                    "caring responses",
+                ],
             },
             SkillType.PROBLEM_SOLVING: {
                 "name": "Problem-Solving",
                 "description": "Analyzing challenges and developing effective solutions",
-                "key_aspects": ["analytical thinking", "strategy development", "persistence"],
+                "key_aspects": [
+                    "analytical thinking",
+                    "strategy development",
+                    "persistence",
+                ],
             },
             SkillType.SELF_REGULATION: {
                 "name": "Self-Regulation",
@@ -127,7 +135,11 @@ class ReasoningGeneratorService:
             SkillType.RESILIENCE: {
                 "name": "Resilience",
                 "description": "Recovering from setbacks and persisting through challenges",
-                "key_aspects": ["persistence", "learning from failure", "positive coping"],
+                "key_aspects": [
+                    "persistence",
+                    "learning from failure",
+                    "positive coping",
+                ],
             },
         }
 
@@ -148,9 +160,7 @@ class ReasoningGeneratorService:
 
         formatted = []
         for i, item in enumerate(evidence[:5], 1):  # Top 5 evidence items
-            formatted.append(
-                f"{i}. {item.content} (confidence: {item.confidence:.2f})"
-            )
+            formatted.append(f"{i}. {item.content} (confidence: {item.confidence:.2f})")
 
         return "\n".join(formatted)
 
@@ -477,7 +487,9 @@ Format your response as JSON:
                 )
                 results[skill_type] = reasoning
             except Exception as e:
-                logger.error(f"Failed to generate reasoning for {skill_type.value}: {e}")
+                logger.error(
+                    f"Failed to generate reasoning for {skill_type.value}: {e}"
+                )
                 continue
 
         return results

@@ -75,7 +75,9 @@ class EvidenceFusionService:
         # Initialize config manager
         if config_path is None:
             # Default path in project directory
-            config_path = Path(os.getenv("FUSION_CONFIG_PATH", "./config/fusion_weights.json"))
+            config_path = Path(
+                os.getenv("FUSION_CONFIG_PATH", "./config/fusion_weights.json")
+            )
 
         self.config_manager = get_fusion_config_manager(config_path)
         self.config = self.config_manager.get_config()
@@ -87,7 +89,9 @@ class EvidenceFusionService:
             f"Initialized EvidenceFusionService with config version {self.config.version}"
         )
 
-    def _initialize_source_weights(self) -> Dict[SkillType, Dict[EvidenceSource, float]]:
+    def _initialize_source_weights(
+        self,
+    ) -> Dict[SkillType, Dict[EvidenceSource, float]]:
         """
         Initialize skill-specific weights for evidence sources.
 
@@ -227,8 +231,8 @@ class EvidenceFusionService:
 
                 # Skill-specific linguistic evidence
                 if skill_type == SkillType.EMPATHY:
-                    empathy_markers = features.get('empathy_markers', 0)
-                    social_proc = features.get('social_processes', 0)
+                    empathy_markers = features.get("empathy_markers", 0)
+                    social_proc = features.get("social_processes", 0)
 
                     if empathy_markers > 0:
                         evidence_items.append(
@@ -258,8 +262,8 @@ class EvidenceFusionService:
                         )
 
                 elif skill_type == SkillType.PROBLEM_SOLVING:
-                    ps_lang = features.get('problem_solving_language', 0)
-                    cognitive = features.get('cognitive_processes', 0)
+                    ps_lang = features.get("problem_solving_language", 0)
+                    cognitive = features.get("cognitive_processes", 0)
 
                     if ps_lang > 0:
                         evidence_items.append(
@@ -277,7 +281,7 @@ class EvidenceFusionService:
                         )
 
                 elif skill_type == SkillType.RESILIENCE:
-                    perseverance = features.get('perseverance_indicators', 0)
+                    perseverance = features.get("perseverance_indicators", 0)
 
                     if perseverance > 0:
                         evidence_items.append(
@@ -333,7 +337,7 @@ class EvidenceFusionService:
 
                 # Skill-specific behavioral evidence
                 if skill_type == SkillType.PROBLEM_SOLVING:
-                    completion_rate = features.get('task_completion_rate', 0)
+                    completion_rate = features.get("task_completion_rate", 0)
 
                     evidence_items.append(
                         EvidenceItem(
@@ -350,8 +354,8 @@ class EvidenceFusionService:
                     )
 
                 elif skill_type == SkillType.SELF_REGULATION:
-                    distraction_res = features.get('distraction_resistance', 1.0)
-                    focus_dur = features.get('focus_duration', 0)
+                    distraction_res = features.get("distraction_resistance", 1.0)
+                    focus_dur = features.get("focus_duration", 0)
 
                     evidence_items.append(
                         EvidenceItem(
@@ -368,8 +372,8 @@ class EvidenceFusionService:
                     )
 
                 elif skill_type == SkillType.RESILIENCE:
-                    retry_count = features.get('retry_count', 0)
-                    recovery_rate = features.get('recovery_rate', 0)
+                    retry_count = features.get("retry_count", 0)
+                    recovery_rate = features.get("recovery_rate", 0)
 
                     if retry_count > 0:
                         evidence_items.append(
@@ -463,8 +467,12 @@ class EvidenceFusionService:
         # Collect evidence from all sources
         # Collect all evidence in parallel for 3x speedup
         ml_evidence_task = self._collect_ml_evidence(session, student_id, skill_type)
-        ling_evidence_task = self._collect_linguistic_evidence(session, student_id, skill_type)
-        beh_evidence_task = self._collect_behavioral_evidence(session, student_id, skill_type)
+        ling_evidence_task = self._collect_linguistic_evidence(
+            session, student_id, skill_type
+        )
+        beh_evidence_task = self._collect_behavioral_evidence(
+            session, student_id, skill_type
+        )
 
         # Wait for all evidence collection to complete concurrently
         ml_evidence, ling_evidence, beh_evidence = await asyncio.gather(

@@ -27,20 +27,24 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # NLP libraries
 try:
     import spacy
+
     SPACY_AVAILABLE = True
 except ImportError:
     SPACY_AVAILABLE = False
-    print("⚠️  spaCy not installed. Install with: pip install spacy && python -m spacy download en_core_web_sm")
+    print(
+        "⚠️  spaCy not installed. Install with: pip install spacy && python -m spacy download en_core_web_sm"
+    )
 
 try:
     from nltk.sentiment import SentimentIntensityAnalyzer
     import nltk
+
     # Download required NLTK data
     try:
-        nltk.data.find('vader_lexicon')
+        nltk.data.find("vader_lexicon")
     except LookupError:
         print("📥 Downloading NLTK VADER lexicon...")
-        nltk.download('vader_lexicon', quiet=True)
+        nltk.download("vader_lexicon", quiet=True)
     NLTK_AVAILABLE = True
 except ImportError:
     NLTK_AVAILABLE = False
@@ -48,6 +52,7 @@ except ImportError:
 
 try:
     from textblob import TextBlob
+
     TEXTBLOB_AVAILABLE = True
 except ImportError:
     TEXTBLOB_AVAILABLE = False
@@ -66,6 +71,7 @@ class LinguisticFeatureExtractor:
             except OSError:
                 print("⚠️  spaCy model not found. Downloading en_core_web_sm...")
                 import subprocess
+
                 subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
                 self.nlp = spacy.load("en_core_web_sm")
 
@@ -75,33 +81,123 @@ class LinguisticFeatureExtractor:
 
         # Define keyword lists
         self.empathy_words = {
-            'feel', 'feeling', 'feelings', 'felt', 'understand', 'care', 'caring',
-            'help', 'helped', 'helping', 'support', 'concern', 'worried', 'compassionate',
-            'empathize', 'sympathy', 'kind', 'kindness', 'comfort', 'listen', 'listened'
+            "feel",
+            "feeling",
+            "feelings",
+            "felt",
+            "understand",
+            "care",
+            "caring",
+            "help",
+            "helped",
+            "helping",
+            "support",
+            "concern",
+            "worried",
+            "compassionate",
+            "empathize",
+            "sympathy",
+            "kind",
+            "kindness",
+            "comfort",
+            "listen",
+            "listened",
         }
 
         self.problem_solving_words = {
-            'solve', 'solved', 'solution', 'analyze', 'think', 'thought', 'thinking',
-            'figure', 'figured', 'plan', 'planned', 'planning', 'strategy', 'approach',
-            'method', 'idea', 'ideas', 'try', 'tried', 'attempt', 'work', 'fix', 'fixed'
+            "solve",
+            "solved",
+            "solution",
+            "analyze",
+            "think",
+            "thought",
+            "thinking",
+            "figure",
+            "figured",
+            "plan",
+            "planned",
+            "planning",
+            "strategy",
+            "approach",
+            "method",
+            "idea",
+            "ideas",
+            "try",
+            "tried",
+            "attempt",
+            "work",
+            "fix",
+            "fixed",
         }
 
         self.perseverance_words = {
-            'try', 'tried', 'trying', 'persist', 'persisted', 'continue', 'continued',
-            'keep', 'kept', 'again', 'practice', 'practiced', 'determined', 'effort',
-            'work', 'worked', 'working', 'challenge', 'difficult', 'hard', 'struggle'
+            "try",
+            "tried",
+            "trying",
+            "persist",
+            "persisted",
+            "continue",
+            "continued",
+            "keep",
+            "kept",
+            "again",
+            "practice",
+            "practiced",
+            "determined",
+            "effort",
+            "work",
+            "worked",
+            "working",
+            "challenge",
+            "difficult",
+            "hard",
+            "struggle",
         }
 
         self.social_words = {
-            'we', 'us', 'our', 'friend', 'friends', 'together', 'team', 'group',
-            'share', 'shared', 'talk', 'talked', 'talking', 'tell', 'told', 'people',
-            'classmate', 'partner', 'everyone', 'someone', 'class'
+            "we",
+            "us",
+            "our",
+            "friend",
+            "friends",
+            "together",
+            "team",
+            "group",
+            "share",
+            "shared",
+            "talk",
+            "talked",
+            "talking",
+            "tell",
+            "told",
+            "people",
+            "classmate",
+            "partner",
+            "everyone",
+            "someone",
+            "class",
         }
 
         self.cognitive_words = {
-            'think', 'thought', 'know', 'knew', 'understand', 'understood', 'realize',
-            'realized', 'consider', 'wondered', 'remember', 'forgot', 'learn', 'learned',
-            'believe', 'believed', 'notice', 'noticed', 'recognize'
+            "think",
+            "thought",
+            "know",
+            "knew",
+            "understand",
+            "understood",
+            "realize",
+            "realized",
+            "consider",
+            "wondered",
+            "remember",
+            "forgot",
+            "learn",
+            "learned",
+            "believe",
+            "believed",
+            "notice",
+            "noticed",
+            "recognize",
         }
 
     def count_word_frequency(self, text: str, word_set: set) -> float:
@@ -138,22 +234,32 @@ class LinguisticFeatureExtractor:
         features = {}
 
         # 1. Skill-specific language markers
-        features['empathy_markers'] = self.count_word_frequency(text, self.empathy_words)
-        features['problem_solving_language'] = self.count_word_frequency(text, self.problem_solving_words)
-        features['perseverance_indicators'] = self.count_word_frequency(text, self.perseverance_words)
+        features["empathy_markers"] = self.count_word_frequency(
+            text, self.empathy_words
+        )
+        features["problem_solving_language"] = self.count_word_frequency(
+            text, self.problem_solving_words
+        )
+        features["perseverance_indicators"] = self.count_word_frequency(
+            text, self.perseverance_words
+        )
 
         # 2. Psychological process markers
-        features['social_processes'] = self.count_word_frequency(text, self.social_words)
-        features['cognitive_processes'] = self.count_word_frequency(text, self.cognitive_words)
+        features["social_processes"] = self.count_word_frequency(
+            text, self.social_words
+        )
+        features["cognitive_processes"] = self.count_word_frequency(
+            text, self.cognitive_words
+        )
 
         # 3. Sentiment scores
         if self.sia:
             sentiment = self.sia.polarity_scores(text)
-            features['positive_sentiment'] = sentiment['pos']
-            features['negative_sentiment'] = sentiment['neg']
+            features["positive_sentiment"] = sentiment["pos"]
+            features["negative_sentiment"] = sentiment["neg"]
         else:
-            features['positive_sentiment'] = 0.0
-            features['negative_sentiment'] = 0.0
+            features["positive_sentiment"] = 0.0
+            features["negative_sentiment"] = 0.0
 
         # 4. Linguistic complexity metrics
         if self.nlp:
@@ -162,42 +268,46 @@ class LinguisticFeatureExtractor:
             # Sentence length
             sentences = list(doc.sents)
             if sentences:
-                features['avg_sentence_length'] = len(doc) / len(sentences)
+                features["avg_sentence_length"] = len(doc) / len(sentences)
             else:
-                features['avg_sentence_length'] = len(doc)
+                features["avg_sentence_length"] = len(doc)
 
             # Syntactic complexity (depth of parse tree)
-            features['syntactic_complexity'] = self._calculate_syntactic_complexity(doc)
+            features["syntactic_complexity"] = self._calculate_syntactic_complexity(doc)
 
             # Word counts
-            features['word_count'] = len(doc)
-            features['unique_word_count'] = len(set(token.text.lower() for token in doc if token.is_alpha))
+            features["word_count"] = len(doc)
+            features["unique_word_count"] = len(
+                set(token.text.lower() for token in doc if token.is_alpha)
+            )
 
             # POS counts
-            features['noun_count'] = sum(1 for token in doc if token.pos_ == 'NOUN')
-            features['verb_count'] = sum(1 for token in doc if token.pos_ == 'VERB')
-            features['adj_count'] = sum(1 for token in doc if token.pos_ == 'ADJ')
-            features['adv_count'] = sum(1 for token in doc if token.pos_ == 'ADV')
+            features["noun_count"] = sum(1 for token in doc if token.pos_ == "NOUN")
+            features["verb_count"] = sum(1 for token in doc if token.pos_ == "VERB")
+            features["adj_count"] = sum(1 for token in doc if token.pos_ == "ADJ")
+            features["adv_count"] = sum(1 for token in doc if token.pos_ == "ADV")
 
         else:
             # Fallback: simple word-based metrics
             words = text.split()
-            features['word_count'] = len(words)
-            features['unique_word_count'] = len(set(w.lower() for w in words))
-            features['avg_sentence_length'] = features['word_count'] / max(1, text.count('.') + text.count('!') + text.count('?'))
-            features['syntactic_complexity'] = 0.0
-            features['noun_count'] = 0.0
-            features['verb_count'] = 0.0
-            features['adj_count'] = 0.0
-            features['adv_count'] = 0.0
+            features["word_count"] = len(words)
+            features["unique_word_count"] = len(set(w.lower() for w in words))
+            features["avg_sentence_length"] = features["word_count"] / max(
+                1, text.count(".") + text.count("!") + text.count("?")
+            )
+            features["syntactic_complexity"] = 0.0
+            features["noun_count"] = 0.0
+            features["verb_count"] = 0.0
+            features["adj_count"] = 0.0
+            features["adv_count"] = 0.0
 
         # Readability score (simple approximation)
         if TEXTBLOB_AVAILABLE:
             blob = TextBlob(text)
             # Flesch Reading Ease approximation
-            features['readability_score'] = self._calculate_readability(text)
+            features["readability_score"] = self._calculate_readability(text)
         else:
-            features['readability_score'] = 50.0  # Neutral default
+            features["readability_score"] = 50.0  # Neutral default
 
         return features
 
@@ -211,6 +321,7 @@ class LinguisticFeatureExtractor:
         Returns:
             Average tree depth
         """
+
         def get_depth(token):
             depth = 0
             current = token
@@ -235,7 +346,7 @@ class LinguisticFeatureExtractor:
         Returns:
             Readability score (0-100, higher = easier)
         """
-        sentences = text.count('.') + text.count('!') + text.count('?')
+        sentences = text.count(".") + text.count("!") + text.count("?")
         sentences = max(1, sentences)
 
         words = len(text.split())
@@ -250,12 +361,12 @@ class LinguisticFeatureExtractor:
 
     def _count_syllables(self, text: str) -> int:
         """Simple syllable counter."""
-        vowels = 'aeiouy'
+        vowels = "aeiouy"
         syllables = 0
         words = text.lower().split()
 
         for word in words:
-            word = word.strip('.,!?;:')
+            word = word.strip(".,!?;:")
             if len(word) == 0:
                 continue
 
@@ -269,7 +380,7 @@ class LinguisticFeatureExtractor:
                 previous_was_vowel = is_vowel
 
             # Adjust for silent e
-            if word.endswith('e'):
+            if word.endswith("e"):
                 count -= 1
 
             syllables += max(1, count)
@@ -279,25 +390,27 @@ class LinguisticFeatureExtractor:
     def _empty_features(self) -> Dict[str, float]:
         """Return empty feature dict with zeros."""
         return {
-            'empathy_markers': 0.0,
-            'problem_solving_language': 0.0,
-            'perseverance_indicators': 0.0,
-            'social_processes': 0.0,
-            'cognitive_processes': 0.0,
-            'positive_sentiment': 0.0,
-            'negative_sentiment': 0.0,
-            'avg_sentence_length': 0.0,
-            'syntactic_complexity': 0.0,
-            'word_count': 0.0,
-            'unique_word_count': 0.0,
-            'readability_score': 50.0,
-            'noun_count': 0.0,
-            'verb_count': 0.0,
-            'adj_count': 0.0,
-            'adv_count': 0.0,
+            "empathy_markers": 0.0,
+            "problem_solving_language": 0.0,
+            "perseverance_indicators": 0.0,
+            "social_processes": 0.0,
+            "cognitive_processes": 0.0,
+            "positive_sentiment": 0.0,
+            "negative_sentiment": 0.0,
+            "avg_sentence_length": 0.0,
+            "syntactic_complexity": 0.0,
+            "word_count": 0.0,
+            "unique_word_count": 0.0,
+            "readability_score": 50.0,
+            "noun_count": 0.0,
+            "verb_count": 0.0,
+            "adj_count": 0.0,
+            "adv_count": 0.0,
         }
 
-    def process_dataset(self, df: pd.DataFrame, text_column: str = 'response') -> pd.DataFrame:
+    def process_dataset(
+        self, df: pd.DataFrame, text_column: str = "response"
+    ) -> pd.DataFrame:
         """
         Extract features for entire dataset.
 

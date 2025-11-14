@@ -97,51 +97,51 @@ class BehavioralFeatureGenerator:
         # Generate features with realistic distributions
         features = {
             # Task completion: higher for older students and higher skill levels
-            'task_completion_rate': self._clip(
+            "task_completion_rate": self._clip(
                 self.rng.normal(completion_mean + grade_factor * 0.05, completion_std),
-                0.2, 1.0
+                0.2,
+                1.0,
             ),
-
             # Time efficiency: how quickly they complete tasks
-            'time_efficiency': self._clip(
+            "time_efficiency": self._clip(
                 self.rng.normal(efficiency_mean + grade_factor * 0.08, efficiency_std),
-                0.2, 1.0
+                0.2,
+                1.0,
             ),
-
             # Retry count: Poisson distribution (discrete)
-            'retry_count': max(0, int(self.rng.poisson(retry_lambda))),
-
+            "retry_count": max(0, int(self.rng.poisson(retry_lambda))),
             # Recovery rate: bounce back from failures
-            'recovery_rate': self._clip(
+            "recovery_rate": self._clip(
                 self.rng.normal(recovery_mean + grade_factor * 0.06, recovery_std),
-                0.2, 1.0
+                0.2,
+                1.0,
             ),
-
             # Distraction resistance: focus maintenance
-            'distraction_resistance': self._clip(
-                self.rng.normal(distraction_mean + grade_factor * 0.10, distraction_std),
-                0.2, 1.0
+            "distraction_resistance": self._clip(
+                self.rng.normal(
+                    distraction_mean + grade_factor * 0.10, distraction_std
+                ),
+                0.2,
+                1.0,
             ),
-
             # Focus duration: minutes of sustained attention
-            'focus_duration': max(1.0,
-                self.rng.normal(focus_mean + grade_factor * 2.0, focus_std)
+            "focus_duration": max(
+                1.0, self.rng.normal(focus_mean + grade_factor * 2.0, focus_std)
             ),
-
             # Collaboration indicators: teamwork signals
-            'collaboration_indicators': self._clip(
-                self.rng.normal(collab_mean, collab_std),
-                0.0, 1.0
+            "collaboration_indicators": self._clip(
+                self.rng.normal(collab_mean, collab_std), 0.0, 1.0
             ),
-
             # Leadership indicators: taking initiative
-            'leadership_indicators': self._clip(
+            "leadership_indicators": self._clip(
                 self.rng.normal(leadership_mean + grade_factor * 0.08, leadership_std),
-                0.0, 1.0
+                0.0,
+                1.0,
             ),
-
             # Event count: total interaction events in game session
-            'event_count': max(1, int(self.rng.poisson(event_lambda + grade_factor * 3))),
+            "event_count": max(
+                1, int(self.rng.poisson(event_lambda + grade_factor * 3))
+            ),
         }
 
         # Add skill-specific adjustments
@@ -164,30 +164,36 @@ class BehavioralFeatureGenerator:
         Returns:
             Adjusted features
         """
-        adjustment_factor = 1.0 if skill_level == "high" else 0.9 if skill_level == "medium" else 0.8
+        adjustment_factor = (
+            1.0 if skill_level == "high" else 0.9 if skill_level == "medium" else 0.8
+        )
 
         if skill_type == "empathy":
             # Empathy correlates with collaboration
-            features['collaboration_indicators'] *= (1.0 + (adjustment_factor - 0.9) * 0.2)
+            features["collaboration_indicators"] *= (
+                1.0 + (adjustment_factor - 0.9) * 0.2
+            )
 
         elif skill_type == "problem_solving":
             # Problem-solving correlates with efficiency and lower retry count
-            features['time_efficiency'] *= (1.0 + (adjustment_factor - 0.9) * 0.15)
-            features['retry_count'] = int(features['retry_count'] * (1.1 - adjustment_factor * 0.3))
+            features["time_efficiency"] *= 1.0 + (adjustment_factor - 0.9) * 0.15
+            features["retry_count"] = int(
+                features["retry_count"] * (1.1 - adjustment_factor * 0.3)
+            )
 
         elif skill_type == "self_regulation":
             # Self-regulation correlates with focus and distraction resistance
-            features['focus_duration'] *= (1.0 + (adjustment_factor - 0.9) * 0.25)
-            features['distraction_resistance'] *= (1.0 + (adjustment_factor - 0.9) * 0.20)
+            features["focus_duration"] *= 1.0 + (adjustment_factor - 0.9) * 0.25
+            features["distraction_resistance"] *= 1.0 + (adjustment_factor - 0.9) * 0.20
 
         elif skill_type == "resilience":
             # Resilience correlates with recovery rate and completion despite retries
-            features['recovery_rate'] *= (1.0 + (adjustment_factor - 0.9) * 0.25)
-            features['task_completion_rate'] *= (1.0 + (adjustment_factor - 0.9) * 0.10)
+            features["recovery_rate"] *= 1.0 + (adjustment_factor - 0.9) * 0.25
+            features["task_completion_rate"] *= 1.0 + (adjustment_factor - 0.9) * 0.10
 
         # Clip all values to valid ranges
         for key in features:
-            if key not in ['retry_count', 'event_count', 'focus_duration']:
+            if key not in ["retry_count", "event_count", "focus_duration"]:
                 features[key] = self._clip(features[key], 0.0, 1.0)
 
         return features
@@ -197,7 +203,10 @@ class BehavioralFeatureGenerator:
         return max(min_val, min(max_val, value))
 
     def generate_derived_feature(
-        self, skill_type: str, behavioral_features: Dict[str, float], linguistic_features: Dict[str, float]
+        self,
+        skill_type: str,
+        behavioral_features: Dict[str, float],
+        linguistic_features: Dict[str, float],
     ) -> float:
         """
         Generate skill-specific derived feature.
@@ -215,34 +224,48 @@ class BehavioralFeatureGenerator:
         if skill_type == "empathy":
             # Empathy = social language × collaboration
             return self._clip(
-                (linguistic_features.get('social_processes', 0.0) * 0.6 +
-                 behavioral_features.get('collaboration_indicators', 0.0) * 0.4),
-                0.0, 1.0
+                (
+                    linguistic_features.get("social_processes", 0.0) * 0.6
+                    + behavioral_features.get("collaboration_indicators", 0.0) * 0.4
+                ),
+                0.0,
+                1.0,
             )
 
         elif skill_type == "problem_solving":
             # Problem-solving = cognitive processes × efficiency
             return self._clip(
-                (linguistic_features.get('cognitive_processes', 0.0) * 0.5 +
-                 behavioral_features.get('time_efficiency', 0.0) * 0.3 +
-                 (1.0 - min(1.0, behavioral_features.get('retry_count', 5) / 10.0)) * 0.2),
-                0.0, 1.0
+                (
+                    linguistic_features.get("cognitive_processes", 0.0) * 0.5
+                    + behavioral_features.get("time_efficiency", 0.0) * 0.3
+                    + (1.0 - min(1.0, behavioral_features.get("retry_count", 5) / 10.0))
+                    * 0.2
+                ),
+                0.0,
+                1.0,
             )
 
         elif skill_type == "self_regulation":
             # Self-regulation = focus × distraction resistance
             return self._clip(
-                (behavioral_features.get('distraction_resistance', 0.0) * 0.5 +
-                 min(1.0, behavioral_features.get('focus_duration', 0.0) / 15.0) * 0.5),
-                0.0, 1.0
+                (
+                    behavioral_features.get("distraction_resistance", 0.0) * 0.5
+                    + min(1.0, behavioral_features.get("focus_duration", 0.0) / 15.0)
+                    * 0.5
+                ),
+                0.0,
+                1.0,
             )
 
         elif skill_type == "resilience":
             # Resilience = recovery × perseverance language
             return self._clip(
-                (behavioral_features.get('recovery_rate', 0.0) * 0.6 +
-                 linguistic_features.get('perseverance_indicators', 0.0) * 0.4),
-                0.0, 1.0
+                (
+                    behavioral_features.get("recovery_rate", 0.0) * 0.6
+                    + linguistic_features.get("perseverance_indicators", 0.0) * 0.4
+                ),
+                0.0,
+                1.0,
             )
 
         return 0.5  # Default
@@ -261,19 +284,19 @@ class BehavioralFeatureGenerator:
 
         behavioral_features_list = []
         derived_features_dict = {
-            'empathy_social_interaction': [],
-            'problem_solving_cognitive': [],
-            'self_regulation_focus': [],
-            'resilience_recovery': [],
+            "empathy_social_interaction": [],
+            "problem_solving_cognitive": [],
+            "self_regulation_focus": [],
+            "resilience_recovery": [],
         }
 
         for idx, row in df.iterrows():
             if idx % 100 == 0 and idx > 0:
                 print(f"   Processed {idx}/{len(df)} samples...")
 
-            skill_level = row.get('skill_level', 'medium')
-            grade = row.get('grade', 5)
-            skill = row.get('skill', 'empathy')
+            skill_level = row.get("skill_level", "medium")
+            grade = row.get("grade", 5)
+            skill = row.get("skill", "empathy")
 
             # Generate behavioral features
             behavioral = self.generate_features(skill_level, grade, skill)
@@ -282,17 +305,22 @@ class BehavioralFeatureGenerator:
             # Generate derived features for all skills
             # Extract linguistic features from current row
             ling_features = {
-                'social_processes': row.get('social_processes', 0.0),
-                'cognitive_processes': row.get('cognitive_processes', 0.0),
-                'perseverance_indicators': row.get('perseverance_indicators', 0.0),
+                "social_processes": row.get("social_processes", 0.0),
+                "cognitive_processes": row.get("cognitive_processes", 0.0),
+                "perseverance_indicators": row.get("perseverance_indicators", 0.0),
             }
 
-            for skill_type in ['empathy', 'problem_solving', 'self_regulation', 'resilience']:
+            for skill_type in [
+                "empathy",
+                "problem_solving",
+                "self_regulation",
+                "resilience",
+            ]:
                 derived_col_name = {
-                    'empathy': 'empathy_social_interaction',
-                    'problem_solving': 'problem_solving_cognitive',
-                    'self_regulation': 'self_regulation_focus',
-                    'resilience': 'resilience_recovery',
+                    "empathy": "empathy_social_interaction",
+                    "problem_solving": "problem_solving_cognitive",
+                    "self_regulation": "self_regulation_focus",
+                    "resilience": "resilience_recovery",
                 }[skill_type]
 
                 derived_value = self.generate_derived_feature(
@@ -305,11 +333,9 @@ class BehavioralFeatureGenerator:
         derived_df = pd.DataFrame(derived_features_dict)
 
         # Combine with original DataFrame
-        result = pd.concat([
-            df.reset_index(drop=True),
-            behavioral_df,
-            derived_df
-        ], axis=1)
+        result = pd.concat(
+            [df.reset_index(drop=True), behavioral_df, derived_df], axis=1
+        )
 
         print(f"✅ Generated {len(behavioral_df.columns)} behavioral features")
         print(f"✅ Generated {len(derived_df.columns)} derived features")
@@ -363,7 +389,9 @@ def main():
 
     print(f"\n💾 Saved to {output_path}")
     print(f"   Total columns: {len(result_df.columns)}")
-    print(f"   Total features: {len(result_df.columns) - len(df.columns)} new columns added")
+    print(
+        f"   Total features: {len(result_df.columns) - len(df.columns)} new columns added"
+    )
 
 
 if __name__ == "__main__":

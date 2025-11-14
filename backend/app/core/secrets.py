@@ -10,10 +10,13 @@ logger = logging.getLogger(__name__)
 # Try to import GCP Secret Manager
 try:
     from google.cloud import secretmanager
+
     GCP_AVAILABLE = True
 except ImportError:
     GCP_AVAILABLE = False
-    logger.warning("Google Cloud Secret Manager not available. Using environment variables only.")
+    logger.warning(
+        "Google Cloud Secret Manager not available. Using environment variables only."
+    )
 
 
 class SecretManager:
@@ -37,9 +40,13 @@ class SecretManager:
         if self.use_gcp:
             try:
                 self.client = secretmanager.SecretManagerServiceClient()
-                logger.info(f"Initialized GCP Secret Manager for project: {self.project_id}")
+                logger.info(
+                    f"Initialized GCP Secret Manager for project: {self.project_id}"
+                )
             except Exception as e:
-                logger.warning(f"Failed to initialize GCP Secret Manager: {e}. Using env vars.")
+                logger.warning(
+                    f"Failed to initialize GCP Secret Manager: {e}. Using env vars."
+                )
                 self.use_gcp = False
                 self.client = None
         else:
@@ -49,7 +56,9 @@ class SecretManager:
         # Cache for secrets to avoid repeated API calls
         self._cache: Dict[str, str] = {}
 
-    def _get_secret_from_gcp(self, secret_name: str, version: str = "latest") -> Optional[str]:
+    def _get_secret_from_gcp(
+        self, secret_name: str, version: str = "latest"
+    ) -> Optional[str]:
         """
         Get secret from GCP Secret Manager.
 
@@ -65,7 +74,9 @@ class SecretManager:
 
         try:
             # Build the resource name
-            name = f"projects/{self.project_id}/secrets/{secret_name}/versions/{version}"
+            name = (
+                f"projects/{self.project_id}/secrets/{secret_name}/versions/{version}"
+            )
 
             # Access the secret version
             response = self.client.access_secret_version(request={"name": name})

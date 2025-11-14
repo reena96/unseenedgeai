@@ -69,8 +69,7 @@ class TestEvidenceFusionService:
         ]
 
         score, confidence, top_evidence = service._fuse_evidence(
-            evidence_items,
-            SkillType.EMPATHY
+            evidence_items, SkillType.EMPATHY
         )
 
         # Check outputs
@@ -81,10 +80,7 @@ class TestEvidenceFusionService:
 
     def test_evidence_fusion_empty(self, service):
         """Test fusion with no evidence."""
-        score, confidence, top_evidence = service._fuse_evidence(
-            [],
-            SkillType.EMPATHY
-        )
+        score, confidence, top_evidence = service._fuse_evidence([], SkillType.EMPATHY)
 
         assert score == 0.5  # Default
         assert confidence == 0.3  # Low confidence
@@ -105,7 +101,7 @@ class TestEvidenceFusionService:
             return_value=(
                 0.75,  # score
                 0.85,  # confidence
-                {'feature_1': 0.3, 'feature_2': 0.5, 'feature_3': 0.2}  # importance
+                {"feature_1": 0.3, "feature_2": 0.5, "feature_3": 0.2},  # importance
             )
         )
         service.inference_service = mock_inference
@@ -113,9 +109,7 @@ class TestEvidenceFusionService:
         mock_session = Mock()
 
         evidence = await service._collect_ml_evidence(
-            mock_session,
-            "student_1",
-            SkillType.EMPATHY
+            mock_session, "student_1", SkillType.EMPATHY
         )
 
         assert len(evidence) > 0
@@ -129,8 +123,8 @@ class TestEvidenceFusionService:
         # Mock linguistic features
         ling_features = Mock(spec=LinguisticFeatures)
         ling_features.features_json = {
-            'empathy_markers': 8,
-            'social_processes': 12,
+            "empathy_markers": 8,
+            "social_processes": 12,
         }
 
         result = Mock()
@@ -138,13 +132,11 @@ class TestEvidenceFusionService:
         mock_session.execute = AsyncMock(return_value=result)
 
         evidence = await service._collect_linguistic_evidence(
-            mock_session,
-            "student_1",
-            SkillType.EMPATHY
+            mock_session, "student_1", SkillType.EMPATHY
         )
 
         assert len(evidence) > 0
-        assert any('empathy markers' in e.content.lower() for e in evidence)
+        assert any("empathy markers" in e.content.lower() for e in evidence)
 
     @pytest.mark.asyncio
     async def test_collect_behavioral_evidence_self_regulation(self, service):
@@ -154,8 +146,8 @@ class TestEvidenceFusionService:
         # Mock behavioral features
         beh_features = Mock(spec=BehavioralFeatures)
         beh_features.features_json = {
-            'distraction_resistance': 0.85,
-            'focus_duration': 45.0,
+            "distraction_resistance": 0.85,
+            "focus_duration": 45.0,
         }
 
         result = Mock()
@@ -163,60 +155,62 @@ class TestEvidenceFusionService:
         mock_session.execute = AsyncMock(return_value=result)
 
         evidence = await service._collect_behavioral_evidence(
-            mock_session,
-            "student_1",
-            SkillType.SELF_REGULATION
+            mock_session, "student_1", SkillType.SELF_REGULATION
         )
 
         assert len(evidence) > 0
-        assert any('focus' in e.content.lower() for e in evidence)
+        assert any("focus" in e.content.lower() for e in evidence)
 
     @pytest.mark.asyncio
     async def test_fuse_skill_evidence_integration(self, service):
         """Test full evidence fusion integration."""
         # Mock all collection methods
-        service._collect_ml_evidence = AsyncMock(return_value=[
-            EvidenceItem(
-                source=EvidenceSource.ML_INFERENCE,
-                evidence_type=EvidenceType.BEHAVIORAL,
-                content="ML prediction: 0.75",
-                score=0.75,
-                confidence=0.85,
-                relevance=1.0,
-                weight=0.5,
-            )
-        ])
+        service._collect_ml_evidence = AsyncMock(
+            return_value=[
+                EvidenceItem(
+                    source=EvidenceSource.ML_INFERENCE,
+                    evidence_type=EvidenceType.BEHAVIORAL,
+                    content="ML prediction: 0.75",
+                    score=0.75,
+                    confidence=0.85,
+                    relevance=1.0,
+                    weight=0.5,
+                )
+            ]
+        )
 
-        service._collect_linguistic_evidence = AsyncMock(return_value=[
-            EvidenceItem(
-                source=EvidenceSource.LINGUISTIC_FEATURES,
-                evidence_type=EvidenceType.LINGUISTIC,
-                content="High empathy markers",
-                score=0.80,
-                confidence=0.70,
-                relevance=0.9,
-                weight=0.25,
-            )
-        ])
+        service._collect_linguistic_evidence = AsyncMock(
+            return_value=[
+                EvidenceItem(
+                    source=EvidenceSource.LINGUISTIC_FEATURES,
+                    evidence_type=EvidenceType.LINGUISTIC,
+                    content="High empathy markers",
+                    score=0.80,
+                    confidence=0.70,
+                    relevance=0.9,
+                    weight=0.25,
+                )
+            ]
+        )
 
-        service._collect_behavioral_evidence = AsyncMock(return_value=[
-            EvidenceItem(
-                source=EvidenceSource.BEHAVIORAL_FEATURES,
-                evidence_type=EvidenceType.BEHAVIORAL,
-                content="Good task completion",
-                score=0.70,
-                confidence=0.75,
-                relevance=0.85,
-                weight=0.25,
-            )
-        ])
+        service._collect_behavioral_evidence = AsyncMock(
+            return_value=[
+                EvidenceItem(
+                    source=EvidenceSource.BEHAVIORAL_FEATURES,
+                    evidence_type=EvidenceType.BEHAVIORAL,
+                    content="Good task completion",
+                    score=0.70,
+                    confidence=0.75,
+                    relevance=0.85,
+                    weight=0.25,
+                )
+            ]
+        )
 
         mock_session = Mock()
 
         score, confidence, evidence = await service.fuse_skill_evidence(
-            mock_session,
-            "student_1",
-            SkillType.EMPATHY
+            mock_session, "student_1", SkillType.EMPATHY
         )
 
         # Verify results

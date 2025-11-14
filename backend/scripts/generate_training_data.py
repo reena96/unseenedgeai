@@ -58,8 +58,12 @@ class TrainingDataPipeline:
         self.seed = seed
 
         print("🚀 Initializing Training Data Pipeline")
-        print(f"   Text Generation: {'OpenAI GPT-4o-mini' if use_openai else 'Template Expansion'}")
-        print(f"   Auto-Labeling: {'OpenAI GPT-4o-mini' if (use_openai and auto_label) else 'Heuristic Rules' if auto_label else 'Disabled'}")
+        print(
+            f"   Text Generation: {'OpenAI GPT-4o-mini' if use_openai else 'Template Expansion'}"
+        )
+        print(
+            f"   Auto-Labeling: {'OpenAI GPT-4o-mini' if (use_openai and auto_label) else 'Heuristic Rules' if auto_label else 'Disabled'}"
+        )
 
     async def run(self, count: int, output_path: str) -> pd.DataFrame:
         """
@@ -88,7 +92,7 @@ class TrainingDataPipeline:
         print("🔍 STAGE 2: Extracting Linguistic Features")
         print("-" * 60)
         extractor = LinguisticFeatureExtractor()
-        df = extractor.process_dataset(df, text_column='response')
+        df = extractor.process_dataset(df, text_column="response")
         print(f"✅ Stage 2 complete: 16 linguistic features extracted\n")
 
         # Stage 3: Generate behavioral features
@@ -102,16 +106,18 @@ class TrainingDataPipeline:
         if self.auto_label:
             print("🏷️  STAGE 4: Auto-Labeling Skill Scores")
             print("-" * 60)
-            labeler = SkillAutoLabeler(
-                use_openai=self.use_openai,
-                model="gpt-4o-mini"
-            )
+            labeler = SkillAutoLabeler(use_openai=self.use_openai, model="gpt-4o-mini")
             df = await labeler.label_dataset(df, batch_size=10)
             print(f"✅ Stage 4 complete: 4 skill scores labeled\n")
         else:
             print("⏭️  STAGE 4: Skipped (auto-labeling disabled)\n")
             # Add placeholder scores
-            for skill in ['empathy', 'problem_solving', 'self_regulation', 'resilience']:
+            for skill in [
+                "empathy",
+                "problem_solving",
+                "self_regulation",
+                "resilience",
+            ]:
                 df[f"{skill}_score"] = 0.5
 
         # Save results
@@ -194,9 +200,16 @@ async def main():
     # Show sample data
     print(f"\n📋 Sample Training Data (first 3 rows):")
     print("=" * 80)
-    sample_cols = ['response', 'skill', 'skill_level', 'grade',
-                   'empathy_score', 'problem_solving_score',
-                   'empathy_markers', 'task_completion_rate']
+    sample_cols = [
+        "response",
+        "skill",
+        "skill_level",
+        "grade",
+        "empathy_score",
+        "problem_solving_score",
+        "empathy_markers",
+        "task_completion_rate",
+    ]
     available_cols = [col for col in sample_cols if col in df.columns]
     print(df[available_cols].head(3).to_string())
 
@@ -214,12 +227,17 @@ async def main():
 
     # Check for required columns
     required_features = [
-        'empathy_markers', 'problem_solving_language', 'perseverance_indicators',
-        'task_completion_rate', 'time_efficiency',
+        "empathy_markers",
+        "problem_solving_language",
+        "perseverance_indicators",
+        "task_completion_rate",
+        "time_efficiency",
     ]
     required_targets = [
-        'empathy_score', 'problem_solving_score',
-        'self_regulation_score', 'resilience_score'
+        "empathy_score",
+        "problem_solving_score",
+        "self_regulation_score",
+        "resilience_score",
     ]
 
     missing_features = [f for f in required_features if f not in df.columns]
@@ -245,7 +263,7 @@ async def main():
 
     # Check score ranges
     if not args.no_auto_label:
-        for skill in ['empathy', 'problem_solving', 'self_regulation', 'resilience']:
+        for skill in ["empathy", "problem_solving", "self_regulation", "resilience"]:
             col = f"{skill}_score"
             if col in df.columns:
                 min_score = df[col].min()
@@ -253,9 +271,13 @@ async def main():
                 mean_score = df[col].mean()
 
                 if min_score < 0 or max_score > 1:
-                    print(f"   ⚠️  {col}: scores out of range [0,1] ({min_score:.3f}-{max_score:.3f})")
+                    print(
+                        f"   ⚠️  {col}: scores out of range [0,1] ({min_score:.3f}-{max_score:.3f})"
+                    )
                 else:
-                    print(f"   ✅ {col}: {min_score:.3f}-{max_score:.3f} (mean: {mean_score:.3f})")
+                    print(
+                        f"   ✅ {col}: {min_score:.3f}-{max_score:.3f} (mean: {mean_score:.3f})"
+                    )
 
     print(f"\n{'='*80}")
     print("🎉 Pipeline execution complete!")

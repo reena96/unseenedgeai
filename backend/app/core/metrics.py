@@ -16,24 +16,21 @@ logger = logging.getLogger(__name__)
 # ===============================================================================
 
 telemetry_events_total = Counter(
-    'telemetry_events_processed_total',
-    'Total telemetry events processed',
-    ['event_type', 'status']
+    "telemetry_events_processed_total",
+    "Total telemetry events processed",
+    ["event_type", "status"],
 )
 
 telemetry_processing_time = Histogram(
-    'telemetry_event_processing_seconds',
-    'Time to process telemetry event'
+    "telemetry_event_processing_seconds", "Time to process telemetry event"
 )
 
 telemetry_batch_size = Histogram(
-    'telemetry_batch_size',
-    'Number of events in telemetry batches'
+    "telemetry_batch_size", "Number of events in telemetry batches"
 )
 
 telemetry_duplicates_total = Counter(
-    'telemetry_duplicates_total',
-    'Total duplicate telemetry events detected'
+    "telemetry_duplicates_total", "Total duplicate telemetry events detected"
 )
 
 
@@ -80,7 +77,9 @@ class MetricsStore:
                 self.use_redis = True
                 logger.info("Connected to Redis for metrics storage")
             except (RedisError, Exception) as e:
-                logger.warning(f"Failed to connect to Redis: {e}. Using in-memory fallback.")
+                logger.warning(
+                    f"Failed to connect to Redis: {e}. Using in-memory fallback."
+                )
                 self.redis_client = None
                 self.use_redis = False
         else:
@@ -117,7 +116,9 @@ class MetricsStore:
             try:
                 self._record_to_redis(metrics)
             except (RedisError, Exception) as e:
-                logger.error(f"Failed to record metrics to Redis: {e}. Using memory fallback.")
+                logger.error(
+                    f"Failed to record metrics to Redis: {e}. Using memory fallback."
+                )
                 self._record_to_memory(metrics)
         else:
             self._record_to_memory(metrics)
@@ -159,7 +160,9 @@ class MetricsStore:
             try:
                 return self._get_from_redis(limit)
             except (RedisError, Exception) as e:
-                logger.error(f"Failed to get metrics from Redis: {e}. Using memory fallback.")
+                logger.error(
+                    f"Failed to get metrics from Redis: {e}. Using memory fallback."
+                )
                 return self._get_from_memory(limit)
         else:
             return self._get_from_memory(limit)
@@ -222,7 +225,9 @@ class MetricsStore:
             # Calculate P95
             sorted_times = sorted(times)
             p95_index = int(len(sorted_times) * 0.95)
-            p95_time = sorted_times[p95_index] if p95_index < len(sorted_times) else max_time
+            p95_time = (
+                sorted_times[p95_index] if p95_index < len(sorted_times) else max_time
+            )
         else:
             avg_time = max_time = min_time = p95_time = 0.0
 

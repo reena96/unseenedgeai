@@ -225,7 +225,9 @@ class FusionConfigManager:
                     self._config = FusionConfig.load(self.config_path)
                     logger.info("Loaded fusion config from file")
                 except Exception as e:
-                    logger.warning(f"Failed to load config from {self.config_path}: {e}")
+                    logger.warning(
+                        f"Failed to load config from {self.config_path}: {e}"
+                    )
                     self._config = FusionConfig()
             else:
                 logger.info("Using default fusion config")
@@ -259,7 +261,9 @@ class FusionConfigManager:
 _config_manager: Optional[FusionConfigManager] = None
 
 
-def get_fusion_config_manager(config_path: Optional[Path] = None) -> FusionConfigManager:
+def get_fusion_config_manager(
+    config_path: Optional[Path] = None,
+) -> FusionConfigManager:
     """
     Get or create global fusion config manager.
 

@@ -8,7 +8,7 @@ Please read @SESSION_HANDOFF_TASKS_14-17.md and @CODE_REVIEW_TASKS_14-17.md to u
 I need you to fix all 10 code review issues identified in the handoff document, starting with the CRITICAL security issues:
 
 1. Add authentication to the Streamlit dashboard (CRITICAL)
-2. Add input validation using Pydantic schemas (CRITICAL)  
+2. Add input validation using Pydantic schemas (CRITICAL)
 3. Implement rate limiting on telemetry endpoints (CRITICAL)
 4. Fix timezone handling (replace datetime.utcnow())
 

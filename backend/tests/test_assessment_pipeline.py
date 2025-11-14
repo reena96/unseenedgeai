@@ -56,36 +56,36 @@ class TestAssessmentPipeline:
         # Linguistic features
         ling_features = Mock(spec=LinguisticFeatures)
         ling_features.features_json = {
-            'empathy_markers': 8,
-            'problem_solving_language': 5,
-            'perseverance_indicators': 6,
-            'social_processes': 10,
-            'cognitive_processes': 7,
-            'positive_sentiment': 0.7,
-            'negative_sentiment': 0.1,
-            'avg_sentence_length': 12.5,
-            'syntactic_complexity': 0.4,
-            'word_count': 200,
-            'unique_word_count': 90,
-            'readability_score': 8.5,
-            'noun_count': 50,
-            'verb_count': 35,
-            'adj_count': 20,
-            'adv_count': 15,
+            "empathy_markers": 8,
+            "problem_solving_language": 5,
+            "perseverance_indicators": 6,
+            "social_processes": 10,
+            "cognitive_processes": 7,
+            "positive_sentiment": 0.7,
+            "negative_sentiment": 0.1,
+            "avg_sentence_length": 12.5,
+            "syntactic_complexity": 0.4,
+            "word_count": 200,
+            "unique_word_count": 90,
+            "readability_score": 8.5,
+            "noun_count": 50,
+            "verb_count": 35,
+            "adj_count": 20,
+            "adv_count": 15,
         }
 
         # Behavioral features
         beh_features = Mock(spec=BehavioralFeatures)
         beh_features.features_json = {
-            'task_completion_rate': 0.85,
-            'time_efficiency': 0.75,
-            'retry_count': 3,
-            'recovery_rate': 0.67,
-            'distraction_resistance': 0.90,
-            'focus_duration': 45.0,
-            'collaboration_indicators': 4,
-            'leadership_indicators': 2,
-            'event_count': 60,
+            "task_completion_rate": 0.85,
+            "time_efficiency": 0.75,
+            "retry_count": 3,
+            "recovery_rate": 0.67,
+            "distraction_resistance": 0.90,
+            "focus_duration": 45.0,
+            "collaboration_indicators": 4,
+            "leadership_indicators": 2,
+            "event_count": 60,
         }
 
         return student, ling_features, beh_features
@@ -113,19 +113,19 @@ class TestAssessmentPipeline:
         beh_result = Mock()
         beh_result.scalar_one_or_none = Mock(return_value=beh_features)
 
-        mock_session.execute = AsyncMock(side_effect=[
-            student_result,
-            ling_result,
-            beh_result,
-            ling_result,
-            beh_result,
-        ])
+        mock_session.execute = AsyncMock(
+            side_effect=[
+                student_result,
+                ling_result,
+                beh_result,
+                ling_result,
+                beh_result,
+            ]
+        )
 
         # Step 1: ML Inference
         score, confidence, importance = await inference_service.infer_skill(
-            mock_session,
-            student.id,
-            SkillType.EMPATHY
+            mock_session, student.id, SkillType.EMPATHY
         )
 
         assert 0.0 <= score <= 1.0
@@ -133,10 +133,10 @@ class TestAssessmentPipeline:
         assert isinstance(importance, dict)
 
         # Step 2: Evidence Fusion
-        fused_score, fused_confidence, evidence = await fusion_service.fuse_skill_evidence(
-            mock_session,
-            student.id,
-            SkillType.EMPATHY
+        fused_score, fused_confidence, evidence = (
+            await fusion_service.fuse_skill_evidence(
+                mock_session, student.id, SkillType.EMPATHY
+            )
         )
 
         assert 0.0 <= fused_score <= 1.0
@@ -145,8 +145,7 @@ class TestAssessmentPipeline:
 
         # Step 3: Reasoning Generation (with mock)
         with patch.object(
-            reasoning_service,
-            '_generate_fallback_reasoning'
+            reasoning_service, "_generate_fallback_reasoning"
         ) as mock_fallback:
             from app.services.reasoning_generator import SkillReasoning
 
@@ -155,7 +154,10 @@ class TestAssessmentPipeline:
                 score=fused_score,
                 reasoning="Student shows strong empathy skills.",
                 strengths=["Uses empathy language", "Shows concern for others"],
-                growth_suggestions=["Practice perspective-taking", "Reflect on feelings"]
+                growth_suggestions=[
+                    "Practice perspective-taking",
+                    "Reflect on feelings",
+                ],
             )
 
             reasoning = await reasoning_service.generate_reasoning(
@@ -163,7 +165,7 @@ class TestAssessmentPipeline:
                 fused_score,
                 fused_confidence,
                 evidence,
-                student_grade=student.grade_level
+                student_grade=student.grade_level,
             )
 
             assert reasoning.skill_type == SkillType.EMPATHY
@@ -213,25 +215,29 @@ class TestAssessmentPipeline:
             )
 
             # Fusion
-            fused_score, fused_confidence, evidence = await fusion_service.fuse_skill_evidence(
-                mock_session, student.id, skill_type
+            fused_score, fused_confidence, evidence = (
+                await fusion_service.fuse_skill_evidence(
+                    mock_session, student.id, skill_type
+                )
             )
 
             # Store results
             all_results[skill_type] = {
-                'score': fused_score,
-                'confidence': fused_confidence,
-                'evidence_count': len(evidence)
+                "score": fused_score,
+                "confidence": fused_confidence,
+                "evidence_count": len(evidence),
             }
 
         # Verify all skills were assessed
         assert len(all_results) == 4
-        assert all(0.0 <= r['score'] <= 1.0 for r in all_results.values())
-        assert all(0.0 <= r['confidence'] <= 1.0 for r in all_results.values())
-        assert all(r['evidence_count'] > 0 for r in all_results.values())
+        assert all(0.0 <= r["score"] <= 1.0 for r in all_results.values())
+        assert all(0.0 <= r["confidence"] <= 1.0 for r in all_results.values())
+        assert all(r["evidence_count"] > 0 for r in all_results.values())
 
     @pytest.mark.asyncio
-    async def test_pipeline_latency_requirement(self, mock_models_dir, mock_student_data):
+    async def test_pipeline_latency_requirement(
+        self, mock_models_dir, mock_student_data
+    ):
         """Test that pipeline meets <30s latency requirement."""
         student, ling_features, beh_features = mock_student_data
 
@@ -273,7 +279,9 @@ class TestAssessmentPipeline:
 
         # Verify latency requirement (excluding GPT-4 for this test)
         # With mocked models, should be very fast (<1s)
-        assert elapsed_time < 5.0, f"Pipeline took {elapsed_time}s for 4 skills (expected <5s without GPT-4)"
+        assert (
+            elapsed_time < 5.0
+        ), f"Pipeline took {elapsed_time}s for 4 skills (expected <5s without GPT-4)"
 
         # Note: In production with real models and GPT-4, target is <30s total
 
@@ -299,18 +307,18 @@ class TestAssessmentPipeline:
         beh_result = Mock()
         beh_result.scalar_one_or_none = Mock(return_value=beh_features)
 
-        mock_session.execute = AsyncMock(side_effect=[
-            student_result,
-            ling_result,
-            beh_result,
-        ])
+        mock_session.execute = AsyncMock(
+            side_effect=[
+                student_result,
+                ling_result,
+                beh_result,
+            ]
+        )
 
         # ML inference should fail gracefully
         with pytest.raises(ValueError, match="No features found"):
             await inference_service.infer_skill(
-                mock_session,
-                student.id,
-                SkillType.EMPATHY
+                mock_session, student.id, SkillType.EMPATHY
             )
 
     @pytest.mark.asyncio
@@ -334,24 +342,26 @@ class TestAssessmentPipeline:
         beh_result = Mock()
         beh_result.scalar_one_or_none = Mock(return_value=None)  # No behavioral data
 
-        mock_session.execute = AsyncMock(side_effect=[
-            student_result,
-            ling_result,
-            beh_result,
-        ])
+        mock_session.execute = AsyncMock(
+            side_effect=[
+                student_result,
+                ling_result,
+                beh_result,
+            ]
+        )
 
         # Should still work with just linguistic features
         score, confidence, importance = await inference_service.infer_skill(
-            mock_session,
-            student.id,
-            SkillType.EMPATHY
+            mock_session, student.id, SkillType.EMPATHY
         )
 
         assert 0.0 <= score <= 1.0
         assert 0.0 <= confidence <= 1.0
 
     @pytest.mark.asyncio
-    async def test_parallel_evidence_collection(self, mock_models_dir, mock_student_data):
+    async def test_parallel_evidence_collection(
+        self, mock_models_dir, mock_student_data
+    ):
         """Test that evidence collection can be parallelized."""
         student, ling_features, beh_features = mock_student_data
 
@@ -383,9 +393,7 @@ class TestAssessmentPipeline:
         # This should be fast because evidence collection is I/O bound
         # and can be parallelized
         score, confidence, evidence = await fusion_service.fuse_skill_evidence(
-            mock_session,
-            student.id,
-            SkillType.EMPATHY
+            mock_session, student.id, SkillType.EMPATHY
         )
 
         elapsed_time = time.time() - start_time

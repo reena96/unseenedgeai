@@ -22,7 +22,6 @@ class ModelMetadata:
     training_samples: int
     model_checksum: str  # SHA256 hash of model file
 
-
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
@@ -53,7 +52,7 @@ class ModelRegistry:
     def _load_registry(self):
         """Load registry from disk."""
         try:
-            with open(self.registry_file, 'r') as f:
+            with open(self.registry_file, "r") as f:
                 data = json.load(f)
 
             for skill_type, metadata_dict in data.items():
@@ -71,14 +70,14 @@ class ModelRegistry:
             for skill_type, metadata in self.registry.items()
         }
 
-        with open(self.registry_file, 'w') as f:
+        with open(self.registry_file, "w") as f:
             json.dump(data, f, indent=2)
 
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum of a file."""
         sha256 = hashlib.sha256()
-        with open(file_path, 'rb') as f:
-            for chunk in iter(lambda: f.read(4096), b''):
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
                 sha256.update(chunk)
         return sha256.hexdigest()
 

@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 NUM_LINGUISTIC_FEATURES = 16
 NUM_BEHAVIORAL_FEATURES = 9
 NUM_DERIVED_FEATURES = 1
-EXPECTED_FEATURE_COUNT = NUM_LINGUISTIC_FEATURES + NUM_BEHAVIORAL_FEATURES + NUM_DERIVED_FEATURES
+EXPECTED_FEATURE_COUNT = (
+    NUM_LINGUISTIC_FEATURES + NUM_BEHAVIORAL_FEATURES + NUM_DERIVED_FEATURES
+)
 
 
 class SkillInferenceService:
@@ -50,7 +52,9 @@ class SkillInferenceService:
         ]
 
         self._load_models()
-        logger.info(f"Initialized SkillInferenceService with models from {self.models_dir}")
+        logger.info(
+            f"Initialized SkillInferenceService with models from {self.models_dir}"
+        )
 
     def _load_models(self):
         """Load trained XGBoost models from disk with validation."""
@@ -75,9 +79,13 @@ class SkillInferenceService:
                             )
 
                         self.feature_names[skill_type] = feature_names
-                        logger.info(f"Loaded {len(feature_names)} feature names for {skill_type.value}")
+                        logger.info(
+                            f"Loaded {len(feature_names)} feature names for {skill_type.value}"
+                        )
                     else:
-                        logger.warning(f"Feature names not found for {skill_type.value}, will use generic names")
+                        logger.warning(
+                            f"Feature names not found for {skill_type.value}, will use generic names"
+                        )
 
                     # Store model after validation
                     self.models[skill_type] = model
@@ -85,19 +93,27 @@ class SkillInferenceService:
                     # Log version info if available
                     version = self.registry.get_model_version(skill_type.value)
                     if version:
-                        logger.info(f"Loaded model for {skill_type.value} (version: {version})")
+                        logger.info(
+                            f"Loaded model for {skill_type.value} (version: {version})"
+                        )
 
                         # Verify integrity
                         if not self.registry.verify_model_integrity(skill_type.value):
-                            logger.warning(f"Model checksum mismatch for {skill_type.value}!")
+                            logger.warning(
+                                f"Model checksum mismatch for {skill_type.value}!"
+                            )
                     else:
-                        logger.info(f"Loaded model for {skill_type.value} (no version info)")
+                        logger.info(
+                            f"Loaded model for {skill_type.value} (no version info)"
+                        )
 
                 except Exception as e:
                     logger.error(f"Failed to load model for {skill_type.value}: {e}")
                     raise  # Fail fast - don't continue with invalid models
             else:
-                logger.warning(f"Model not found for {skill_type.value} at {model_path}")
+                logger.warning(
+                    f"Model not found for {skill_type.value} at {model_path}"
+                )
 
     def _extract_feature_vector(
         self,
@@ -121,41 +137,45 @@ class SkillInferenceService:
         # Linguistic features
         if linguistic_features and linguistic_features.features_json:
             ling = linguistic_features.features_json
-            features.extend([
-                ling.get('empathy_markers', 0),
-                ling.get('problem_solving_language', 0),
-                ling.get('perseverance_indicators', 0),
-                ling.get('social_processes', 0),
-                ling.get('cognitive_processes', 0),
-                ling.get('positive_sentiment', 0.0),
-                ling.get('negative_sentiment', 0.0),
-                ling.get('avg_sentence_length', 0.0),
-                ling.get('syntactic_complexity', 0.0),
-                ling.get('word_count', 0),
-                ling.get('unique_word_count', 0),
-                ling.get('readability_score', 0.0),
-                ling.get('noun_count', 0),
-                ling.get('verb_count', 0),
-                ling.get('adj_count', 0),
-                ling.get('adv_count', 0),
-            ])
+            features.extend(
+                [
+                    ling.get("empathy_markers", 0),
+                    ling.get("problem_solving_language", 0),
+                    ling.get("perseverance_indicators", 0),
+                    ling.get("social_processes", 0),
+                    ling.get("cognitive_processes", 0),
+                    ling.get("positive_sentiment", 0.0),
+                    ling.get("negative_sentiment", 0.0),
+                    ling.get("avg_sentence_length", 0.0),
+                    ling.get("syntactic_complexity", 0.0),
+                    ling.get("word_count", 0),
+                    ling.get("unique_word_count", 0),
+                    ling.get("readability_score", 0.0),
+                    ling.get("noun_count", 0),
+                    ling.get("verb_count", 0),
+                    ling.get("adj_count", 0),
+                    ling.get("adv_count", 0),
+                ]
+            )
         else:
             features.extend([0] * NUM_LINGUISTIC_FEATURES)
 
         # Behavioral features
         if behavioral_features and behavioral_features.features_json:
             beh = behavioral_features.features_json
-            features.extend([
-                beh.get('task_completion_rate', 0.0),
-                beh.get('time_efficiency', 0.0),
-                beh.get('retry_count', 0),
-                beh.get('recovery_rate', 0.0),
-                beh.get('distraction_resistance', 1.0),
-                beh.get('focus_duration', 0.0),
-                beh.get('collaboration_indicators', 0),
-                beh.get('leadership_indicators', 0),
-                beh.get('event_count', 0),
-            ])
+            features.extend(
+                [
+                    beh.get("task_completion_rate", 0.0),
+                    beh.get("time_efficiency", 0.0),
+                    beh.get("retry_count", 0),
+                    beh.get("recovery_rate", 0.0),
+                    beh.get("distraction_resistance", 1.0),
+                    beh.get("focus_duration", 0.0),
+                    beh.get("collaboration_indicators", 0),
+                    beh.get("leadership_indicators", 0),
+                    beh.get("event_count", 0),
+                ]
+            )
         else:
             # Default behavioral features: all zeros except distraction_resistance=1
             features.extend([0, 0, 0, 0, 1, 0, 0, 0, 0])
@@ -173,7 +193,9 @@ class SkillInferenceService:
             features.append(ps_lang * cognitive)
         elif skill_type == SkillType.SELF_REGULATION:
             # Self-regulation specific features
-            distraction_res = features[20] if len(features) > 20 else 1  # distraction_resistance
+            distraction_res = (
+                features[20] if len(features) > 20 else 1
+            )  # distraction_resistance
             focus_dur = features[21] if len(features) > 21 else 0  # focus_duration
             features.append(distraction_res * focus_dur)
         elif skill_type == SkillType.RESILIENCE:
@@ -212,7 +234,7 @@ class SkillInferenceService:
             confidence_components = []
 
             # Component 1: Tree prediction variance (if available)
-            if hasattr(model, 'get_booster'):
+            if hasattr(model, "get_booster"):
                 try:
                     # Get predictions from all trees
                     booster = model.get_booster()
@@ -222,7 +244,7 @@ class SkillInferenceService:
                         pred = booster.predict(
                             features,
                             iteration_range=(tree_idx, tree_idx + 1),
-                            output_margin=False
+                            output_margin=False,
                         )
                         tree_preds.append(pred[0])
 
@@ -271,9 +293,7 @@ class SkillInferenceService:
                 # Only one component
                 weights = [1.0]
 
-            confidence = sum(
-                c * w for c, w in zip(confidence_components, weights)
-            )
+            confidence = sum(c * w for c, w in zip(confidence_components, weights))
 
             # Ensure confidence is in valid range
             confidence = float(np.clip(confidence, 0.3, 0.95))
@@ -308,7 +328,7 @@ class SkillInferenceService:
             Dictionary of feature names to importance scores
         """
         try:
-            if hasattr(model, 'feature_importances_'):
+            if hasattr(model, "feature_importances_"):
                 importances = model.feature_importances_
                 feature_names = self.feature_names.get(skill_type, [])
 

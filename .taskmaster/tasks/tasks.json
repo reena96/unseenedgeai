@@ -165,7 +165,7 @@
         "dependencies": [
           10
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -173,7 +173,7 @@
             "description": "Train XGBoost models for each of the 7 skills using extracted features.",
             "dependencies": [],
             "details": "Use the extracted features dataset to train separate XGBoost models for each skill. Ensure models are optimized for accuracy and efficiency.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate model accuracy using cross-validation and compare results with baseline models."
           },
           {
@@ -184,7 +184,7 @@
               1
             ],
             "details": "Develop an API using Flask or FastAPI to serve the trained models. Deploy the API on Google Cloud Run for scalability.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test API endpoints for correct skill score outputs and measure response times."
           },
           {
@@ -196,7 +196,7 @@
               2
             ],
             "details": "Perform correlation analysis between model predictions and teacher ratings to assess model performance. Adjust models if necessary.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Use statistical methods to measure correlation and report findings."
           },
           {
@@ -207,7 +207,7 @@
               2
             ],
             "details": "Monitor the API's response times and optimize the code or infrastructure to maintain latency requirements.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Conduct load testing and analyze latency metrics to ensure compliance with performance standards."
           }
         ]
@@ -222,7 +222,7 @@
         "dependencies": [
           11
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -235,7 +235,7 @@
         "dependencies": [
           12
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -248,7 +248,7 @@
         "dependencies": [
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -262,7 +262,7 @@
           13,
           14
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -270,7 +270,7 @@
             "description": "Create UI components for the teacher dashboard using React.",
             "dependencies": [],
             "details": "Develop reusable React components for the dashboard layout, including navigation, class insights, and student insights views.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Conduct component rendering tests and UI responsiveness checks."
           },
           {
@@ -281,7 +281,7 @@
               1
             ],
             "details": "Use RESTful APIs to retrieve class insights data and display it in the dashboard. Ensure data is updated in real-time.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Perform integration tests to verify data retrieval and display accuracy."
           },
           {
@@ -292,7 +292,7 @@
               1
             ],
             "details": "Create a component to display evidence data, including skill assessments and historical performance.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test the evidence viewer for correct data rendering and user interaction."
           },
           {
@@ -304,7 +304,7 @@
               2
             ],
             "details": "Develop a timeline or list view to show past skill assessments and progress over time.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify historical data accuracy and timeline navigation functionality."
           },
           {
@@ -316,7 +316,7 @@
               4
             ],
             "details": "Organize testing sessions, observe user interactions, and collect feedback to improve dashboard usability.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Analyze feedback and make necessary UI/UX adjustments based on educator input."
           }
         ]
@@ -332,7 +332,7 @@
           8,
           15
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -340,7 +340,7 @@
             "description": "Perform penetration testing to identify vulnerabilities in the system.",
             "dependencies": [],
             "details": "Use automated tools and manual testing to identify security vulnerabilities. Focus on areas critical for FERPA and COPPA compliance.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify all identified vulnerabilities are addressed."
           },
           {
@@ -351,7 +351,7 @@
               1
             ],
             "details": "Review system policies and procedures to ensure they meet FERPA and COPPA requirements. Document any gaps and propose solutions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Conduct a compliance audit and verify all requirements are met."
           },
           {
@@ -362,7 +362,7 @@
               2
             ],
             "details": "Define roles and permissions based on user needs. Implement RBAC in the system to restrict access to sensitive data.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test access controls to ensure only authorized users can access sensitive data."
           },
           {
@@ -373,7 +373,7 @@
               2
             ],
             "details": "Use industry-standard encryption methods to secure data at rest and in transit. Ensure encryption keys are managed securely.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify data is encrypted and can only be decrypted by authorized users."
           },
           {
@@ -387,7 +387,7 @@
               4
             ],
             "details": "Create a comprehensive report detailing the audit process, findings, and any corrective actions taken.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Review the report for completeness and accuracy. Ensure all findings are addressed."
           }
         ]
@@ -402,7 +402,7 @@
         "dependencies": [
           16
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -1407,7 +1407,7 @@
     ],
     "metadata": {
       "created": "2025-11-12T06:31:05.563Z",
-      "updated": "2025-11-13T07:25:49.794Z",
+      "updated": "2025-11-14T04:56:54.238Z",
       "description": "Tasks for master context"
     }
   }

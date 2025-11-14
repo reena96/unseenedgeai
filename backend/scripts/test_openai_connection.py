@@ -30,7 +30,7 @@ def check_api_key():
         return False
 
     # Check if it's a placeholder
-    if settings.OPENAI_API_KEY in ['your-openai-api-key', 'loaded-from-secret-manager']:
+    if settings.OPENAI_API_KEY in ["your-openai-api-key", "loaded-from-secret-manager"]:
         print("⚠️  OPENAI_API_KEY is set to a placeholder value")
         print(f"   Current value: {settings.OPENAI_API_KEY}")
         print("\n📝 You need to replace this with a real API key:")
@@ -71,15 +71,15 @@ def test_connection():
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant for testing API connections."
+                    "content": "You are a helpful assistant for testing API connections.",
                 },
                 {
                     "role": "user",
-                    "content": "Say 'Hello from OpenAI!' if you can read this."
-                }
+                    "content": "Say 'Hello from OpenAI!' if you can read this.",
+                },
             ],
             max_tokens=20,
-            temperature=0.5
+            temperature=0.5,
         )
 
         message = response.choices[0].message.content.strip()
@@ -87,7 +87,7 @@ def test_connection():
         print(f"   Test response: {message}")
 
         # Show usage info
-        if hasattr(response, 'usage'):
+        if hasattr(response, "usage"):
             usage = response.usage
             print(f"\n📊 Token usage for this test:")
             print(f"   Input tokens: {usage.prompt_tokens}")
@@ -102,7 +102,10 @@ def test_connection():
         print(f"   Error: {error_message}")
 
         # Provide specific guidance based on error
-        if "api_key" in error_message.lower() or "authentication" in error_message.lower():
+        if (
+            "api_key" in error_message.lower()
+            or "authentication" in error_message.lower()
+        ):
             print("\n💡 Troubleshooting:")
             print("   - Verify your API key is correct")
             print("   - Check it starts with 'sk-'")
@@ -112,7 +115,9 @@ def test_connection():
             print("   - You've hit the rate limit")
             print("   - Wait a moment and try again")
             print("   - Check limits: https://platform.openai.com/account/limits")
-        elif "quota" in error_message.lower() or "insufficient" in error_message.lower():
+        elif (
+            "quota" in error_message.lower() or "insufficient" in error_message.lower()
+        ):
             print("\n💡 Troubleshooting:")
             print("   - Add credits to your OpenAI account")
             print("   - Visit: https://platform.openai.com/account/billing")
@@ -128,7 +133,9 @@ def test_connection():
 def estimate_costs():
     """Display cost estimates for different dataset sizes."""
     print("\n💰 Cost Estimates for GPT-4o-mini:")
-    print("   (Based on current pricing: $0.15/1M input tokens, $0.60/1M output tokens)")
+    print(
+        "   (Based on current pricing: $0.15/1M input tokens, $0.60/1M output tokens)"
+    )
     print()
 
     # Assumptions:
@@ -178,10 +185,14 @@ def main():
         print("\n📝 Next Steps:")
         print("   1. Review backend/docs/GPT4_SETUP.md for usage examples")
         print("   2. Generate a test dataset (100 samples):")
-        print("      python scripts/generate_synthetic_responses.py --count 100 --use-openai")
+        print(
+            "      python scripts/generate_synthetic_responses.py --count 100 --use-openai"
+        )
         print("   3. Review the generated data quality")
         print("   4. Generate production dataset (1000-10000 samples)")
-        print("\n💡 Tip: Start small to verify quality before generating large datasets")
+        print(
+            "\n💡 Tip: Start small to verify quality before generating large datasets"
+        )
     else:
         print("❌ SETUP INCOMPLETE")
         print("\n📖 See backend/docs/GPT4_SETUP.md for setup instructions")

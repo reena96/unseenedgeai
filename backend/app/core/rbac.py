@@ -195,9 +195,7 @@ def require_role(*allowed_roles: Role):
     return decorator
 
 
-async def can_access_student(
-    user: User, student_id: str, db: AsyncSession
-) -> bool:
+async def can_access_student(user: User, student_id: str, db: AsyncSession) -> bool:
     """
     Check if user can access specific student's data.
 
@@ -238,9 +236,7 @@ async def can_access_student(
     return False
 
 
-async def is_parent_of(
-    parent_id: str, student_id: str, db: AsyncSession
-) -> bool:
+async def is_parent_of(parent_id: str, student_id: str, db: AsyncSession) -> bool:
     """Check if user is parent of student."""
     # This would query parent-student relationship table
     # For now, placeholder implementation
@@ -272,16 +268,13 @@ async def is_in_teacher_class(
 
     # Check if student is in any of teacher's classes
     stmt = select(Student).where(
-        Student.id == student_id,
-        Student.class_id.in_(teacher.class_ids or [])
+        Student.id == student_id, Student.class_id.in_(teacher.class_ids or [])
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none() is not None
 
 
-async def is_in_school(
-    school_id: str, student_id: str, db: AsyncSession
-) -> bool:
+async def is_in_school(school_id: str, student_id: str, db: AsyncSession) -> bool:
     """Check if student is in school."""
     from app.models.student import Student
 

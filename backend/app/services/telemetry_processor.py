@@ -83,7 +83,9 @@ class TelemetryProcessor:
                 event_type=event_type,
                 event_data=event_data,
                 mission_id=mission_id,
-                choice_made=event_data.get("choice") if event_type == "choice_made" else None,
+                choice_made=(
+                    event_data.get("choice") if event_type == "choice_made" else None
+                ),
             )
 
             self.db.add(telemetry)
@@ -94,13 +96,13 @@ class TelemetryProcessor:
             )
 
             # Record metrics
-            telemetry_events_total.labels(event_type=event_type, status='success').inc()
+            telemetry_events_total.labels(event_type=event_type, status="success").inc()
             telemetry_processing_time.observe(time.time() - start_time)
 
             return telemetry
         except Exception as e:
             # Record failure metric
-            telemetry_events_total.labels(event_type=event_type, status='failure').inc()
+            telemetry_events_total.labels(event_type=event_type, status="failure").inc()
             raise
 
     async def process_batch(
@@ -183,7 +185,9 @@ class TelemetryProcessor:
             )
             self.db.add(session)
             await self.db.flush()
-            logger.info(f"Created new game session {session_id} for student {student_id}")
+            logger.info(
+                f"Created new game session {session_id} for student {student_id}"
+            )
 
         return session
 
@@ -324,7 +328,8 @@ class TelemetryProcessor:
             ).total_seconds() / 60.0
             expected_duration = tasks_completed * 3.0  # Assume 3 min per task
             time_efficiency = min(
-                1.0, expected_duration / duration_minutes if duration_minutes > 0 else 0.0
+                1.0,
+                expected_duration / duration_minutes if duration_minutes > 0 else 0.0,
             )
         else:
             time_efficiency = 0.5

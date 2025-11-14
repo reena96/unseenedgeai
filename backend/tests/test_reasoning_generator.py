@@ -55,9 +55,9 @@ class TestReasoningGeneratorService:
         ]:
             assert skill_type in service.skill_definitions
             definition = service.skill_definitions[skill_type]
-            assert 'name' in definition
-            assert 'description' in definition
-            assert 'key_aspects' in definition
+            assert "name" in definition
+            assert "description" in definition
+            assert "key_aspects" in definition
 
     def test_format_evidence_for_prompt(self, service, sample_evidence):
         """Test evidence formatting for prompt."""
@@ -75,11 +75,7 @@ class TestReasoningGeneratorService:
     def test_build_prompt(self, service, sample_evidence):
         """Test prompt building."""
         prompt = service._build_prompt(
-            SkillType.EMPATHY,
-            0.75,
-            0.85,
-            sample_evidence,
-            student_grade=3
+            SkillType.EMPATHY, 0.75, 0.85, sample_evidence, student_grade=3
         )
 
         # Check prompt includes key elements
@@ -95,29 +91,25 @@ class TestReasoningGeneratorService:
         # Mock OpenAI response
         mock_response = Mock()
         mock_response.choices = [Mock()]
-        mock_response.choices[0].message.content = json.dumps({
-            "reasoning": "The student demonstrates strong empathy skills through consistent use of empathy markers and social awareness.",
-            "strengths": [
-                "Shows genuine concern for others",
-                "Uses empathy language naturally"
-            ],
-            "growth_suggestions": [
-                "Practice perspective-taking in group activities",
-                "Reflect on others' feelings during discussions"
-            ]
-        })
+        mock_response.choices[0].message.content = json.dumps(
+            {
+                "reasoning": "The student demonstrates strong empathy skills through consistent use of empathy markers and social awareness.",
+                "strengths": [
+                    "Shows genuine concern for others",
+                    "Uses empathy language naturally",
+                ],
+                "growth_suggestions": [
+                    "Practice perspective-taking in group activities",
+                    "Reflect on others' feelings during discussions",
+                ],
+            }
+        )
 
         with patch.object(
-            service.client.chat.completions,
-            'create',
-            return_value=mock_response
+            service.client.chat.completions, "create", return_value=mock_response
         ) as mock_create:
             reasoning = await service.generate_reasoning(
-                SkillType.EMPATHY,
-                0.75,
-                0.85,
-                sample_evidence,
-                student_grade=3
+                SkillType.EMPATHY, 0.75, 0.85, sample_evidence, student_grade=3
             )
 
             # Verify result
@@ -134,14 +126,11 @@ class TestReasoningGeneratorService:
         # Mock API failure
         with patch.object(
             service.client.chat.completions,
-            'create',
-            side_effect=Exception("API Error")
+            "create",
+            side_effect=Exception("API Error"),
         ):
             reasoning = await service.generate_reasoning(
-                SkillType.EMPATHY,
-                0.75,
-                0.85,
-                sample_evidence
+                SkillType.EMPATHY, 0.75, 0.85, sample_evidence
             )
 
             # Should return fallback reasoning
@@ -169,7 +158,10 @@ class TestReasoningGeneratorService:
         low_reasoning = service._generate_fallback_reasoning(
             SkillType.EMPATHY, 0.35, sample_evidence
         )
-        assert "emerging" in low_reasoning.reasoning.lower() or "beginning" in low_reasoning.reasoning.lower()
+        assert (
+            "emerging" in low_reasoning.reasoning.lower()
+            or "beginning" in low_reasoning.reasoning.lower()
+        )
 
     @pytest.mark.asyncio
     async def test_generate_all_reasoning(self, service):
@@ -187,7 +179,7 @@ class TestReasoningGeneratorService:
                         confidence=0.85,
                         relevance=1.0,
                     )
-                ]
+                ],
             ),
             SkillType.PROBLEM_SOLVING: (
                 0.65,
@@ -201,23 +193,25 @@ class TestReasoningGeneratorService:
                         confidence=0.75,
                         relevance=1.0,
                     )
-                ]
+                ],
             ),
         }
 
         # Mock successful generation
         with patch.object(
             service,
-            'generate_reasoning',
+            "generate_reasoning",
             side_effect=lambda skill_type, score, conf, evidence, grade: SkillReasoning(
                 skill_type=skill_type,
                 score=score,
                 reasoning="Test reasoning",
                 strengths=["Strength 1", "Strength 2"],
-                growth_suggestions=["Suggestion 1", "Suggestion 2"]
-            )
+                growth_suggestions=["Suggestion 1", "Suggestion 2"],
+            ),
         ):
-            results = await service.generate_all_reasoning(skill_scores, student_grade=3)
+            results = await service.generate_all_reasoning(
+                skill_scores, student_grade=3
+            )
 
             assert len(results) == 2
             assert SkillType.EMPATHY in results

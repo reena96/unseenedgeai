@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 class SkillModelTrainer:
     """Train XGBoost models for skill inference."""
 
-    def __init__(self, data_path: str, models_dir: str = "./models", model_version: str = "1.0.0"):
+    def __init__(
+        self, data_path: str, models_dir: str = "./models", model_version: str = "1.0.0"
+    ):
         """
         Initialize the model trainer.
 
@@ -71,7 +73,9 @@ class SkillModelTrainer:
             raise FileNotFoundError(f"Data file not found: {self.data_path}")
 
         df = pd.read_csv(self.data_path)
-        logger.info(f"Loaded {len(df)} training examples with {len(df.columns)} features")
+        logger.info(
+            f"Loaded {len(df)} training examples with {len(df.columns)} features"
+        )
 
         return df
 
@@ -87,47 +91,47 @@ class SkillModelTrainer:
         """
         # Base linguistic features (16)
         linguistic_features = [
-            'empathy_markers',
-            'problem_solving_language',
-            'perseverance_indicators',
-            'social_processes',
-            'cognitive_processes',
-            'positive_sentiment',
-            'negative_sentiment',
-            'avg_sentence_length',
-            'syntactic_complexity',
-            'word_count',
-            'unique_word_count',
-            'readability_score',
-            'noun_count',
-            'verb_count',
-            'adj_count',
-            'adv_count',
+            "empathy_markers",
+            "problem_solving_language",
+            "perseverance_indicators",
+            "social_processes",
+            "cognitive_processes",
+            "positive_sentiment",
+            "negative_sentiment",
+            "avg_sentence_length",
+            "syntactic_complexity",
+            "word_count",
+            "unique_word_count",
+            "readability_score",
+            "noun_count",
+            "verb_count",
+            "adj_count",
+            "adv_count",
         ]
 
         # Base behavioral features (9)
         behavioral_features = [
-            'task_completion_rate',
-            'time_efficiency',
-            'retry_count',
-            'recovery_rate',
-            'distraction_resistance',
-            'focus_duration',
-            'collaboration_indicators',
-            'leadership_indicators',
-            'event_count',
+            "task_completion_rate",
+            "time_efficiency",
+            "retry_count",
+            "recovery_rate",
+            "distraction_resistance",
+            "focus_duration",
+            "collaboration_indicators",
+            "leadership_indicators",
+            "event_count",
         ]
 
         # Skill-specific derived feature
         skill_feature_map = {
-            SkillType.EMPATHY: 'empathy_social_interaction',
-            SkillType.PROBLEM_SOLVING: 'problem_solving_cognitive',
-            SkillType.SELF_REGULATION: 'self_regulation_focus',
-            SkillType.RESILIENCE: 'resilience_recovery',
+            SkillType.EMPATHY: "empathy_social_interaction",
+            SkillType.PROBLEM_SOLVING: "problem_solving_cognitive",
+            SkillType.SELF_REGULATION: "self_regulation_focus",
+            SkillType.RESILIENCE: "resilience_recovery",
         }
 
         all_features = linguistic_features + behavioral_features
-        all_features.append(skill_feature_map.get(skill_type, 'derived_feature'))
+        all_features.append(skill_feature_map.get(skill_type, "derived_feature"))
 
         return all_features
 
@@ -172,7 +176,9 @@ class SkillModelTrainer:
         # Ensure target is in 0-1 range
         y = np.clip(y, 0.0, 1.0)
 
-        logger.info(f"Prepared {len(X)} samples with {len(feature_names)} features for {skill_type.value}")
+        logger.info(
+            f"Prepared {len(X)} samples with {len(feature_names)} features for {skill_type.value}"
+        )
 
         return X, y, feature_names
 
@@ -202,7 +208,7 @@ class SkillModelTrainer:
 
         # Configure XGBoost
         model = xgb.XGBRegressor(
-            objective='reg:squarederror',
+            objective="reg:squarederror",
             n_estimators=100,
             max_depth=5,
             learning_rate=0.1,
@@ -235,7 +241,7 @@ class SkillModelTrainer:
 
         # Cross-validation
         cv_scores = cross_val_score(
-            model, X, y, cv=5, scoring='neg_mean_squared_error', n_jobs=-1
+            model, X, y, cv=5, scoring="neg_mean_squared_error", n_jobs=-1
         )
         cv_mse = -cv_scores.mean()
         cv_std = cv_scores.std()
@@ -244,11 +250,11 @@ class SkillModelTrainer:
 
         # Collect metrics
         metrics = {
-            'mse': float(mse),
-            'mae': float(mae),
-            'r2': float(r2),
-            'cv_mse': float(cv_mse),
-            'cv_std': float(cv_std),
+            "mse": float(mse),
+            "mae": float(mae),
+            "r2": float(r2),
+            "cv_mse": float(cv_mse),
+            "cv_std": float(cv_std),
         }
 
         return model, metrics
@@ -283,11 +289,11 @@ class SkillModelTrainer:
 
         # Register model with metadata
         hyperparameters = {
-            'n_estimators': model.n_estimators,
-            'max_depth': model.max_depth,
-            'learning_rate': model.learning_rate,
-            'subsample': model.subsample,
-            'colsample_bytree': model.colsample_bytree,
+            "n_estimators": model.n_estimators,
+            "max_depth": model.max_depth,
+            "learning_rate": model.learning_rate,
+            "subsample": model.subsample,
+            "colsample_bytree": model.colsample_bytree,
         }
 
         self.registry.register_model(
@@ -300,7 +306,9 @@ class SkillModelTrainer:
             training_samples=training_samples,
         )
 
-        logger.info(f"Registered model {skill_type.value} v{self.model_version} in registry")
+        logger.info(
+            f"Registered model {skill_type.value} v{self.model_version} in registry"
+        )
 
     def train_all_skills(self):
         """Train models for all skills."""
@@ -340,7 +348,9 @@ class SkillModelTrainer:
 
 def main():
     """Main entry point for training script."""
-    parser = argparse.ArgumentParser(description="Train XGBoost models for skill inference")
+    parser = argparse.ArgumentParser(
+        description="Train XGBoost models for skill inference"
+    )
     parser.add_argument(
         "--data",
         type=str,

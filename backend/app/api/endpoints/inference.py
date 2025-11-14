@@ -40,10 +40,16 @@ class SkillScoreResponse(BaseModel):
 
     skill_type: str
     score: float = Field(..., ge=0.0, le=1.0, description="Skill score (0-1)")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in prediction (0-1)")
+    confidence: float = Field(
+        ..., ge=0.0, le=1.0, description="Confidence in prediction (0-1)"
+    )
     feature_importance: Dict[str, float] = Field(default_factory=dict)
-    inference_time_ms: float = Field(..., description="Time taken for inference in milliseconds")
-    model_version: Optional[str] = Field(None, description="Version of model used for inference")
+    inference_time_ms: float = Field(
+        ..., description="Time taken for inference in milliseconds"
+    )
+    model_version: Optional[str] = Field(
+        None, description="Version of model used for inference"
+    )
 
 
 class StudentSkillScoresResponse(BaseModel):
@@ -53,7 +59,9 @@ class StudentSkillScoresResponse(BaseModel):
     skills: List[SkillScoreResponse]
     total_inference_time_ms: float
     timestamp: datetime
-    model_versions: Optional[Dict[str, str]] = Field(None, description="Model versions used")
+    model_versions: Optional[Dict[str, str]] = Field(
+        None, description="Model versions used"
+    )
 
 
 class InferenceMetrics(BaseModel):
@@ -153,7 +161,9 @@ async def infer_student_skills(
             success=True,
         )
 
-        logger.info(f"Completed inference for student {student_id} in {total_time:.2f}ms")
+        logger.info(
+            f"Completed inference for student {student_id} in {total_time:.2f}ms"
+        )
 
         return StudentSkillScoresResponse(
             student_id=student_id,
@@ -360,7 +370,9 @@ async def get_metrics_summary(
 class BatchInferenceRequest(BaseModel):
     """Request model for batch inference."""
 
-    student_ids: List[str] = Field(..., min_items=1, max_items=100, description="List of student IDs (max 100)")
+    student_ids: List[str] = Field(
+        ..., min_items=1, max_items=100, description="List of student IDs (max 100)"
+    )
 
 
 class BatchInferenceStatus(BaseModel):

@@ -41,12 +41,15 @@ class SkillAutoLabeler:
         if use_openai:
             try:
                 from openai import OpenAI
+
                 self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
             except ImportError:
-                print("⚠️  OpenAI library not installed. Using heuristic labeling instead.")
+                print(
+                    "⚠️  OpenAI library not installed. Using heuristic labeling instead."
+                )
                 self.use_openai = False
 
-        self.skills = ['empathy', 'problem_solving', 'self_regulation', 'resilience']
+        self.skills = ["empathy", "problem_solving", "self_regulation", "resilience"]
 
     async def label_with_openai(
         self, response: str, skill: str, skill_level: str, grade: int
@@ -67,10 +70,10 @@ class SkillAutoLabeler:
             raise ValueError("OpenAI not configured")
 
         skill_descriptions = {
-            'empathy': 'understanding and sharing the feelings of others, showing care and compassion',
-            'problem_solving': 'approaching challenges systematically, trying different strategies, and finding solutions',
-            'self_regulation': 'managing emotions, maintaining focus, and controlling impulses appropriately',
-            'resilience': 'persisting through difficulties, learning from setbacks, and bouncing back from failures',
+            "empathy": "understanding and sharing the feelings of others, showing care and compassion",
+            "problem_solving": "approaching challenges systematically, trying different strategies, and finding solutions",
+            "self_regulation": "managing emotions, maintaining focus, and controlling impulses appropriately",
+            "resilience": "persisting through difficulties, learning from setbacks, and bouncing back from failures",
         }
 
         level_guidelines = """
@@ -130,7 +133,8 @@ Your score (number only):"""
             except ValueError:
                 # Try to extract number from text
                 import re
-                numbers = re.findall(r'0\.\d+|1\.0|0|1', score_text)
+
+                numbers = re.findall(r"0\.\d+|1\.0|0|1", score_text)
                 if numbers:
                     score = float(numbers[0])
                 else:
@@ -167,9 +171,9 @@ Your score (number only):"""
         """
         # Base score ranges by level
         score_ranges = {
-            'high': (0.70, 0.90),
-            'medium': (0.50, 0.70),
-            'developing': (0.30, 0.55),
+            "high": (0.70, 0.90),
+            "medium": (0.50, 0.70),
+            "developing": (0.30, 0.55),
         }
 
         base_min, base_max = score_ranges.get(skill_level, (0.40, 0.60))
@@ -208,14 +212,16 @@ Your score (number only):"""
             DataFrame with added score columns
         """
         print(f"🏷️  Auto-labeling skill scores for {len(df)} samples...")
-        print(f"   Method: {'OpenAI ' + self.model if self.use_openai else 'Heuristic Rules'}")
+        print(
+            f"   Method: {'OpenAI ' + self.model if self.use_openai else 'Heuristic Rules'}"
+        )
 
         # Initialize score columns
         score_columns = {
-            'empathy_score': [],
-            'problem_solving_score': [],
-            'self_regulation_score': [],
-            'resilience_score': [],
+            "empathy_score": [],
+            "problem_solving_score": [],
+            "self_regulation_score": [],
+            "resilience_score": [],
         }
 
         # Process in batches
@@ -223,10 +229,10 @@ Your score (number only):"""
             if idx % 50 == 0 and idx > 0:
                 print(f"   Labeled {idx}/{len(df)} samples...")
 
-            response = row.get('response', '')
-            skill = row.get('skill', 'empathy')
-            skill_level = row.get('skill_level', 'medium')
-            grade = row.get('grade', 5)
+            response = row.get("response", "")
+            skill = row.get("skill", "empathy")
+            skill_level = row.get("skill_level", "medium")
+            grade = row.get("grade", 5)
 
             # Label all 4 skills for this response
             # The primary skill gets labeled based on the response
@@ -247,9 +253,9 @@ Your score (number only):"""
                 else:
                     # Secondary skills - assign baseline scores with variance
                     # These should be lower and more neutral
-                    if skill_level == 'high':
+                    if skill_level == "high":
                         score = np.random.uniform(0.50, 0.65)
-                    elif skill_level == 'medium':
+                    elif skill_level == "medium":
                         score = np.random.uniform(0.40, 0.55)
                     else:
                         score = np.random.uniform(0.30, 0.50)
@@ -268,22 +274,23 @@ Your score (number only):"""
 
         # Show score statistics
         print(f"\n📊 Score Statistics:")
-        score_stats = df[[
-            'empathy_score',
-            'problem_solving_score',
-            'self_regulation_score',
-            'resilience_score'
-        ]].describe()
+        score_stats = df[
+            [
+                "empathy_score",
+                "problem_solving_score",
+                "self_regulation_score",
+                "resilience_score",
+            ]
+        ].describe()
         print(score_stats.round(3))
 
         # Show score distribution by skill level
         print(f"\n📊 Score Distribution by Skill Level:")
-        for level in ['high', 'medium', 'developing']:
-            level_df = df[df['skill_level'] == level]
+        for level in ["high", "medium", "developing"]:
+            level_df = df[df["skill_level"] == level]
             if len(level_df) > 0:
                 avg_scores = {
-                    skill: level_df[f"{skill}_score"].mean()
-                    for skill in self.skills
+                    skill: level_df[f"{skill}_score"].mean() for skill in self.skills
                 }
                 print(f"   {level.upper()}: {avg_scores}")
 
@@ -347,20 +354,42 @@ async def main():
 
     # Show expected columns for training
     expected_features = [
-        'empathy_markers', 'problem_solving_language', 'perseverance_indicators',
-        'social_processes', 'cognitive_processes', 'positive_sentiment', 'negative_sentiment',
-        'avg_sentence_length', 'syntactic_complexity', 'word_count', 'unique_word_count',
-        'readability_score', 'noun_count', 'verb_count', 'adj_count', 'adv_count',
-        'task_completion_rate', 'time_efficiency', 'retry_count', 'recovery_rate',
-        'distraction_resistance', 'focus_duration', 'collaboration_indicators',
-        'leadership_indicators', 'event_count',
-        'empathy_social_interaction', 'problem_solving_cognitive',
-        'self_regulation_focus', 'resilience_recovery'
+        "empathy_markers",
+        "problem_solving_language",
+        "perseverance_indicators",
+        "social_processes",
+        "cognitive_processes",
+        "positive_sentiment",
+        "negative_sentiment",
+        "avg_sentence_length",
+        "syntactic_complexity",
+        "word_count",
+        "unique_word_count",
+        "readability_score",
+        "noun_count",
+        "verb_count",
+        "adj_count",
+        "adv_count",
+        "task_completion_rate",
+        "time_efficiency",
+        "retry_count",
+        "recovery_rate",
+        "distraction_resistance",
+        "focus_duration",
+        "collaboration_indicators",
+        "leadership_indicators",
+        "event_count",
+        "empathy_social_interaction",
+        "problem_solving_cognitive",
+        "self_regulation_focus",
+        "resilience_recovery",
     ]
 
     expected_targets = [
-        'empathy_score', 'problem_solving_score',
-        'self_regulation_score', 'resilience_score'
+        "empathy_score",
+        "problem_solving_score",
+        "self_regulation_score",
+        "resilience_score",
     ]
 
     missing_features = [f for f in expected_features if f not in labeled_df.columns]
@@ -373,7 +402,9 @@ async def main():
 
     if not missing_features and not missing_targets:
         print(f"\n✅ All required columns present! Ready to train models with:")
-        print(f"   python app/ml/train_models.py --data {output_path} --models-dir models/")
+        print(
+            f"   python app/ml/train_models.py --data {output_path} --models-dir models/"
+        )
 
 
 if __name__ == "__main__":

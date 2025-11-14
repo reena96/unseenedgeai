@@ -53,35 +53,35 @@ class TestPerformanceBenchmarks:
 
         ling_features = Mock(spec=LinguisticFeatures)
         ling_features.features_json = {
-            'empathy_markers': 8,
-            'problem_solving_language': 5,
-            'perseverance_indicators': 6,
-            'social_processes': 10,
-            'cognitive_processes': 7,
-            'positive_sentiment': 0.7,
-            'negative_sentiment': 0.1,
-            'avg_sentence_length': 12.5,
-            'syntactic_complexity': 0.4,
-            'word_count': 200,
-            'unique_word_count': 90,
-            'readability_score': 8.5,
-            'noun_count': 50,
-            'verb_count': 35,
-            'adj_count': 20,
-            'adv_count': 15,
+            "empathy_markers": 8,
+            "problem_solving_language": 5,
+            "perseverance_indicators": 6,
+            "social_processes": 10,
+            "cognitive_processes": 7,
+            "positive_sentiment": 0.7,
+            "negative_sentiment": 0.1,
+            "avg_sentence_length": 12.5,
+            "syntactic_complexity": 0.4,
+            "word_count": 200,
+            "unique_word_count": 90,
+            "readability_score": 8.5,
+            "noun_count": 50,
+            "verb_count": 35,
+            "adj_count": 20,
+            "adv_count": 15,
         }
 
         beh_features = Mock(spec=BehavioralFeatures)
         beh_features.features_json = {
-            'task_completion_rate': 0.85,
-            'time_efficiency': 0.75,
-            'retry_count': 3,
-            'recovery_rate': 0.67,
-            'distraction_resistance': 0.90,
-            'focus_duration': 45.0,
-            'collaboration_indicators': 4,
-            'leadership_indicators': 2,
-            'event_count': 60,
+            "task_completion_rate": 0.85,
+            "time_efficiency": 0.75,
+            "retry_count": 3,
+            "recovery_rate": 0.67,
+            "distraction_resistance": 0.90,
+            "focus_duration": 45.0,
+            "collaboration_indicators": 4,
+            "leadership_indicators": 2,
+            "event_count": 60,
         }
 
         return student, ling_features, beh_features
@@ -106,11 +106,13 @@ class TestPerformanceBenchmarks:
             result.scalar_one_or_none = Mock(return_value=value)
             return result
 
-        mock_session.execute = AsyncMock(side_effect=[
-            create_mock_result(student),
-            create_mock_result(ling_features),
-            create_mock_result(beh_features),
-        ])
+        mock_session.execute = AsyncMock(
+            side_effect=[
+                create_mock_result(student),
+                create_mock_result(ling_features),
+                create_mock_result(beh_features),
+            ]
+        )
 
         # Measure single inference
         start = time.time()
@@ -207,11 +209,13 @@ class TestPerformanceBenchmarks:
         # Setup query results for all students
         query_results = []
         for student in students:
-            query_results.extend([
-                create_mock_result(student),
-                create_mock_result(ling_features),
-                create_mock_result(beh_features),
-            ])
+            query_results.extend(
+                [
+                    create_mock_result(student),
+                    create_mock_result(ling_features),
+                    create_mock_result(beh_features),
+                ]
+            )
 
         mock_session.execute = AsyncMock(side_effect=query_results)
 
@@ -232,7 +236,9 @@ class TestPerformanceBenchmarks:
         throughput_per_minute = throughput * 60
 
         print(f"\nBatch throughput: {throughput_per_minute:.1f} students/minute")
-        assert throughput_per_minute >= 10, f"Throughput {throughput_per_minute:.1f}/min is below 10/min target"
+        assert (
+            throughput_per_minute >= 10
+        ), f"Throughput {throughput_per_minute:.1f}/min is below 10/min target"
 
     @pytest.mark.asyncio
     async def test_evidence_fusion_latency(
@@ -255,13 +261,15 @@ class TestPerformanceBenchmarks:
             result.scalar_one_or_none = Mock(return_value=value)
             return result
 
-        mock_session.execute = AsyncMock(side_effect=[
-            create_mock_result(student),
-            create_mock_result(ling_features),
-            create_mock_result(beh_features),
-            create_mock_result(ling_features),
-            create_mock_result(beh_features),
-        ])
+        mock_session.execute = AsyncMock(
+            side_effect=[
+                create_mock_result(student),
+                create_mock_result(ling_features),
+                create_mock_result(beh_features),
+                create_mock_result(ling_features),
+                create_mock_result(beh_features),
+            ]
+        )
 
         # Measure fusion
         start = time.time()
@@ -281,35 +289,35 @@ class TestPerformanceBenchmarks:
         # Create realistic feature data
         ling_features = Mock(spec=LinguisticFeatures)
         ling_features.features_json = {
-            'empathy_markers': 8,
-            'problem_solving_language': 5,
-            'perseverance_indicators': 6,
-            'social_processes': 10,
-            'cognitive_processes': 7,
-            'positive_sentiment': 0.7,
-            'negative_sentiment': 0.1,
-            'avg_sentence_length': 12.5,
-            'syntactic_complexity': 0.4,
-            'word_count': 200,
-            'unique_word_count': 90,
-            'readability_score': 8.5,
-            'noun_count': 50,
-            'verb_count': 35,
-            'adj_count': 20,
-            'adv_count': 15,
+            "empathy_markers": 8,
+            "problem_solving_language": 5,
+            "perseverance_indicators": 6,
+            "social_processes": 10,
+            "cognitive_processes": 7,
+            "positive_sentiment": 0.7,
+            "negative_sentiment": 0.1,
+            "avg_sentence_length": 12.5,
+            "syntactic_complexity": 0.4,
+            "word_count": 200,
+            "unique_word_count": 90,
+            "readability_score": 8.5,
+            "noun_count": 50,
+            "verb_count": 35,
+            "adj_count": 20,
+            "adv_count": 15,
         }
 
         beh_features = Mock(spec=BehavioralFeatures)
         beh_features.features_json = {
-            'task_completion_rate': 0.85,
-            'time_efficiency': 0.75,
-            'retry_count': 3,
-            'recovery_rate': 0.67,
-            'distraction_resistance': 0.90,
-            'focus_duration': 45.0,
-            'collaboration_indicators': 4,
-            'leadership_indicators': 2,
-            'event_count': 60,
+            "task_completion_rate": 0.85,
+            "time_efficiency": 0.75,
+            "retry_count": 3,
+            "recovery_rate": 0.67,
+            "distraction_resistance": 0.90,
+            "focus_duration": 45.0,
+            "collaboration_indicators": 4,
+            "leadership_indicators": 2,
+            "event_count": 60,
         }
 
         # Run feature extraction 1000 times
@@ -318,9 +326,7 @@ class TestPerformanceBenchmarks:
 
         for _ in range(num_iterations):
             features = inference_service._extract_feature_vector(
-                ling_features,
-                beh_features,
-                SkillType.EMPATHY
+                ling_features, beh_features, SkillType.EMPATHY
             )
 
         elapsed = time.time() - start
@@ -350,11 +356,13 @@ class TestPerformanceBenchmarks:
                 result.scalar_one_or_none = Mock(return_value=value)
                 return result
 
-            mock_session.execute = AsyncMock(side_effect=[
-                create_mock_result(student),
-                create_mock_result(ling_features),
-                create_mock_result(beh_features),
-            ])
+            mock_session.execute = AsyncMock(
+                side_effect=[
+                    create_mock_result(student),
+                    create_mock_result(ling_features),
+                    create_mock_result(beh_features),
+                ]
+            )
 
             mock_sessions.append(mock_session)
 
@@ -373,5 +381,9 @@ class TestPerformanceBenchmarks:
 
         throughput = num_concurrent / elapsed
 
-        print(f"\nConcurrent requests: {num_concurrent} in {elapsed:.2f}s ({throughput:.1f} req/s)")
-        assert elapsed < 5.0, f"50 concurrent requests took {elapsed}s, exceeds 5s target"
+        print(
+            f"\nConcurrent requests: {num_concurrent} in {elapsed:.2f}s ({throughput:.1f} req/s)"
+        )
+        assert (
+            elapsed < 5.0
+        ), f"50 concurrent requests took {elapsed}s, exceeds 5s target"
