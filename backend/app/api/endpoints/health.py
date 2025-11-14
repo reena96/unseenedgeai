@@ -4,8 +4,11 @@ from fastapi import APIRouter, status
 from pydantic import BaseModel
 from datetime import datetime
 import sys
+import os
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class HealthResponse(BaseModel):
@@ -40,7 +43,10 @@ async def health_check():
         status="healthy",
         timestamp=datetime.utcnow(),
         version="0.1.0",
-        python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        python_version=(
+            f"{sys.version_info.major}.{sys.version_info.minor}"
+            f".{sys.version_info.micro}"
+        ),
     )
 
 
@@ -53,18 +59,52 @@ async def health_check():
 )
 async def detailed_health_check():
     """Detailed health check including service status."""
-    # TODO: Add actual service health checks
-    services = {
-        "database": "unknown",  # TODO: Check database connection
-        "redis": "unknown",  # TODO: Check Redis connection
-        "storage": "unknown",  # TODO: Check Cloud Storage access
-    }
+    services = {}
+
+    # Check OpenAI API key for reasoning generation
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key:
+        services["openai_api"] = "configured"
+        logger.debug("OpenAI API key is configured")
+    else:
+        services["openai_api"] = "missing"
+        logger.warning("OpenAI API key is not configured")
+
+    # Check Redis connection
+    redis_url = os.getenv("REDIS_URL")
+    if redis_url:
+        try:
+            import redis
+
+            client = redis.from_url(redis_url, socket_connect_timeout=2)
+            client.ping()
+            services["redis"] = "healthy"
+            client.close()
+        except Exception as e:
+            services["redis"] = f"unhealthy: {str(e)}"
+            logger.warning(f"Redis health check failed: {e}")
+    else:
+        services["redis"] = "not_configured"
+
+    # Database check placeholder
+    services["database"] = "unknown"  # TODO: Check database connection
+
+    # Storage check placeholder
+    services["storage"] = "unknown"  # TODO: Check Cloud Storage access
+
+    # Determine overall status
+    overall_status = "healthy"
+    if services.get("openai_api") == "missing":
+        overall_status = "degraded"  # Can still function with fallback reasoning
 
     return DetailedHealthResponse(
-        status="healthy",
+        status=overall_status,
         timestamp=datetime.utcnow(),
         version="0.1.0",
-        python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        python_version=(
+            f"{sys.version_info.major}.{sys.version_info.minor}"
+            f".{sys.version_info.micro}"
+        ),
         services=services,
     )
 

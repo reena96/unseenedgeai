@@ -7,6 +7,10 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 import logging
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
 from app.core.config import settings
 from app.api.middleware.logging import LoggingMiddleware
 from app.api.middleware.error_handler import ErrorHandlerMiddleware
@@ -21,6 +25,7 @@ from app.api.endpoints import (
     transcription,
     features,
     assessments,
+    inference,
 )
 
 # Configure logging
@@ -29,6 +34,9 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Configure rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
@@ -61,6 +69,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Attach rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Add middleware (order matters - first added is outermost)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
@@ -86,6 +98,7 @@ app.include_router(
 )
 app.include_router(features.router, prefix=settings.API_V1_STR, tags=["features"])
 app.include_router(assessments.router, prefix=settings.API_V1_STR, tags=["assessments"])
+app.include_router(inference.router, prefix=settings.API_V1_STR, tags=["inference"])
 
 
 @app.get("/")

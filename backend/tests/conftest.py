@@ -245,3 +245,82 @@ async def test_audio_file(db_session, test_student):
     db_session.add(audio)
     await db_session.flush()  # Flush to database without committing
     return audio
+
+
+@pytest.fixture
+def mock_rate_limiter(monkeypatch):
+    """
+    Mock slowapi rate limiter for tests.
+
+    The slowapi rate limiter uses in-memory storage that conflicts with
+    pytest transaction rollbacks, causing 'closed transaction' errors.
+    This fixture mocks the rate limiter to be a no-op during tests.
+    """
+    from unittest.mock import MagicMock
+
+    mock = MagicMock()
+    # Make the limit decorator a no-op that just returns the function unchanged
+    mock.limit = lambda *args, **kwargs: lambda f: f
+
+    # Patch the limiter in the telemetry endpoints module
+    monkeypatch.setattr("app.api.endpoints.telemetry.limiter", mock)
+
+    return mock
+
+
+@pytest_asyncio.fixture
+async def db_session_no_commit(test_engine):
+    """
+    Create a test database session with mocked commit for processor tests.
+
+    The TelemetryProcessor.process_batch() method calls commit(), which would
+    close the test transaction. This fixture mocks commit() to be a no-op.
+    """
+    from unittest.mock import AsyncMock
+
+    async_session = async_sessionmaker(
+        test_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autocommit=False,
+        autoflush=False,
+    )
+
+    async with async_session() as session:
+        # Start a transaction
+        async with session.begin():
+            # Mock commit to prevent closing the transaction
+            session.commit = AsyncMock(return_value=None)
+            yield session
+            # Rollback happens automatically when exiting the context
+
+
+@pytest_asyncio.fixture
+async def test_school_no_commit(db_session_no_commit):
+    """Create a test school with no-commit session."""
+    school = School(
+        id=str(uuid.uuid4()),
+        name="Test School",
+        district="Test District",
+        city="Test City",
+        state="CA",
+        zip_code="12345",
+    )
+    db_session_no_commit.add(school)
+    await db_session_no_commit.flush()
+    return school
+
+
+@pytest_asyncio.fixture
+async def test_student_no_commit(db_session_no_commit, test_school_no_commit):
+    """Create a test student with no-commit session."""
+    student = Student(
+        id=str(uuid.uuid4()),
+        first_name="Test",
+        last_name="Student",
+        grade_level=5,
+        school_id=test_school_no_commit.id,
+    )
+    db_session_no_commit.add(student)
+    await db_session_no_commit.flush()
+    return student
