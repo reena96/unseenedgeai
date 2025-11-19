@@ -93,3 +93,8 @@ backend/models/
 
 # Frontend (separate repository)
 frontend/
+
+# BMad folders
+.bmad/
+.bmad-core/
+.claude/commands/bmad/
