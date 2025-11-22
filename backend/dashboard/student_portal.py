@@ -29,7 +29,7 @@ import os
 # CONFIGURATION
 # ================================================================================
 
-API_URL = os.getenv("API_URL", "http://localhost:8000/api/v1")
+API_URL = os.getenv("API_URL", "http://localhost:8080/api/v1")
 
 # All 7 skills with student-friendly names
 SKILLS = {
@@ -133,11 +133,36 @@ class StudentAPI:
     def get_assessment(self, student_id: str) -> Dict[str, Any]:
         """Get skill assessment for student"""
         try:
-            response = requests.post(
-                f"{self.base_url}/infer/{student_id}", timeout=self.timeout
+            # Get existing assessments from database
+            response = requests.get(
+                f"{self.base_url}/assessments/{student_id}",
+                params={"limit": 10},
+                timeout=self.timeout,
             )
             response.raise_for_status()
-            return response.json()
+            assessments = response.json()
+
+            # Format response to match expected structure
+            if assessments:
+                # Group by skill type and get the most recent for each
+                skills_dict = {}
+                for assessment in assessments:
+                    skill_type = assessment["skill_type"]
+                    if skill_type not in skills_dict:
+                        skills_dict[skill_type] = {
+                            "skill_type": skill_type,
+                            "score": assessment["score"],
+                            "confidence": assessment["confidence"],
+                            "reasoning": assessment.get("reasoning", ""),
+                            "recommendations": assessment.get("recommendations", ""),
+                        }
+
+                return {
+                    "student_id": student_id,
+                    "skills": list(skills_dict.values()),
+                    "timestamp": assessments[0]["created_at"] if assessments else None,
+                }
+            return {}
         except requests.exceptions.RequestException as e:
             st.error(f"Error fetching assessment: {e}")
             return {}

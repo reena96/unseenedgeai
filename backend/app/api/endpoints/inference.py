@@ -40,10 +40,33 @@ class EvidenceItem(BaseModel):
     """Evidence supporting a skill assessment."""
 
     source: str = Field(
-        ..., description="Source of evidence (transcript/game_telemetry)"
+        ...,
+        description="Source of evidence (transcript/game_telemetry)",
+        examples=["transcript", "game_telemetry"],
     )
-    text: str = Field(..., description="Evidence text content")
-    relevance: float = Field(..., ge=0.0, le=1.0, description="Relevance score (0-1)")
+    text: str = Field(
+        ...,
+        description="Evidence text content",
+        examples=[
+            "Student demonstrated empathy by helping classmate",
+            "Completed problem-solving mission with 90% accuracy",
+        ],
+    )
+    relevance: float = Field(
+        ..., ge=0.0, le=1.0, description="Relevance score (0-1)", examples=[0.85, 0.92]
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "source": "transcript",
+                    "text": "Student demonstrated empathy by helping classmate",
+                    "relevance": 0.85,
+                }
+            ]
+        }
+    }
 
 
 class SkillScoreResponse(BaseModel):

@@ -41,7 +41,7 @@ from yaml.loader import SafeLoader
 # ================================================================================
 
 # Backend API URL (configured via environment variable)
-API_URL = os.getenv("API_URL", "http://localhost:8000/api/v1")
+API_URL = os.getenv("API_URL", "http://localhost:8080/api/v1")
 
 # Skill configuration
 SKILLS = ["empathy", "problem_solving", "self_regulation", "resilience"]
@@ -80,11 +80,36 @@ class SkillAssessmentAPI:
     def get_student_assessment(self, student_id: str) -> Dict[str, Any]:
         """Get skill assessment for a specific student"""
         try:
-            response = requests.post(
-                f"{self.base_url}/infer/{student_id}", timeout=self.timeout
+            # Get existing assessments from database
+            response = requests.get(
+                f"{self.base_url}/assessments/{student_id}",
+                params={"limit": 10},
+                timeout=self.timeout,
             )
             response.raise_for_status()
-            return response.json()
+            assessments = response.json()
+
+            # Format response to match expected structure
+            if assessments:
+                # Group by skill type and get the most recent for each
+                skills_dict = {}
+                for assessment in assessments:
+                    skill_type = assessment["skill_type"]
+                    if skill_type not in skills_dict:
+                        skills_dict[skill_type] = {
+                            "skill_type": skill_type,
+                            "score": assessment["score"],
+                            "confidence": assessment["confidence"],
+                            "reasoning": assessment.get("reasoning", ""),
+                            "recommendations": assessment.get("recommendations", ""),
+                        }
+
+                return {
+                    "student_id": student_id,
+                    "skills": list(skills_dict.values()),
+                    "timestamp": assessments[0]["created_at"] if assessments else None,
+                }
+            return {}
         except requests.exceptions.RequestException as e:
             st.error(f"Error fetching assessment: {e}")
             return {}
@@ -428,11 +453,23 @@ def main():
                 with col1:
                     st.metric("Student ID", assessment["student_id"])
                 with col2:
-                    st.metric(
-                        "Inference Time", f"{assessment['total_inference_time_ms']}ms"
-                    )
+                    # Only show inference time if available (from ML inference endpoint)
+                    if "total_inference_time_ms" in assessment:
+                        st.metric(
+                            "Inference Time",
+                            f"{assessment['total_inference_time_ms']}ms",
+                        )
+                    else:
+                        # Show assessment timestamp instead
+                        timestamp = assessment.get(
+                            "timestamp", datetime.now().isoformat()
+                        )
+                        st.metric(
+                            "Assessed At",
+                            timestamp[:10] if isinstance(timestamp, str) else "Recent",
+                        )
                 with col3:
-                    st.metric("Timestamp", datetime.now().strftime("%Y-%m-%d %H:%M"))
+                    st.metric("Current Time", datetime.now().strftime("%Y-%m-%d %H:%M"))
 
                 st.markdown("---")
 

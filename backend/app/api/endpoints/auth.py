@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -39,8 +39,17 @@ class TokenData(BaseModel):
 class UserLogin(BaseModel):
     """User login request."""
 
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(..., examples=["teacher@school.edu", "admin@school.edu"])
+    password: str = Field(..., examples=["password123", "SecurePass456!"])
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {"email": "teacher@school.edu", "password": "password123"},
+                {"email": "admin@school.edu", "password": "SecurePass456!"},
+            ]
+        }
+    }
 
 
 class UserResponse(BaseModel):
@@ -59,10 +68,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
 
     to_encode.update({"exp": expire, "type": "access"})
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -71,7 +84,9 @@ def create_refresh_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire, "type": "refresh"})
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -84,7 +99,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenData:
     )
 
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         user_id: str = payload.get("sub")
         email: str = payload.get("email")
         role: str = payload.get("role")
@@ -146,7 +163,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def refresh_token(refresh_token: str):
     """Refresh access token using refresh token."""
     try:
-        payload = jwt.decode(refresh_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            refresh_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
 
         if payload.get("type") != "refresh":
             raise HTTPException(

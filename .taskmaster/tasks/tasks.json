@@ -214,7 +214,7 @@
       },
       {
         "id": 12,
-        "title": "Implement Evidence Fusion Service",
+        "title": "Implement Evidence Fusion Service",≠≠≠
         "description": "Develop a service to combine evidence from multiple sources for skill inference.",
         "details": "Normalize scores, apply skill-specific weights, and calculate weighted averages. Extract top evidence items and generate confidence scores.",
         "testStrategy": "Test fusion accuracy by comparing with expected outcomes. Conduct integration tests to ensure correct evidence combination.",

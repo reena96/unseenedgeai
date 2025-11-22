@@ -34,18 +34,39 @@ class EvidenceSchema(BaseModel):
 class AssessmentRequest(BaseModel):
     """Request to generate a skill assessment."""
 
-    skill_type: SkillTypeSchema
+    skill_type: SkillTypeSchema = Field(
+        ..., examples=["empathy"], description="Type of skill to assess"
+    )
     use_cached: bool = Field(
         default=True, description="Use cached assessment if available (within 7 days)"
     )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {"skill_type": "empathy", "use_cached": True},
+                {"skill_type": "problem_solving", "use_cached": False},
+            ]
+        }
+    }
 
 
 class BatchAssessmentRequest(BaseModel):
     """Request to generate assessments for multiple students."""
 
-    student_ids: List[str]
+    student_ids: List[str] = Field(
+        ...,
+        examples=[
+            [
+                "550e8400-e29b-41d4-a716-446655440001",
+                "550e8400-e29b-41d4-a716-446655440002",
+            ]
+        ],
+        description="List of student IDs to assess",
+    )
     skill_types: Optional[List[SkillTypeSchema]] = Field(
         default=None,
+        examples=[["empathy", "problem_solving"]],
         description=(
             "Skills to assess (defaults to all primary skills: "
             "empathy, problem_solving, self_regulation, resilience)"
@@ -54,6 +75,21 @@ class BatchAssessmentRequest(BaseModel):
     use_cached: bool = Field(
         default=True, description="Use cached assessments where available"
     )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "student_ids": [
+                        "550e8400-e29b-41d4-a716-446655440001",
+                        "550e8400-e29b-41d4-a716-446655440002",
+                    ],
+                    "skill_types": ["empathy", "problem_solving"],
+                    "use_cached": True,
+                }
+            ]
+        }
+    }
 
 
 class AssessmentResponse(BaseModel):

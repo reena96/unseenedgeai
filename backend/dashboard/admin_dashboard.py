@@ -30,7 +30,7 @@ import json
 # CONFIGURATION
 # ================================================================================
 
-API_URL = os.getenv("API_URL", "http://localhost:8000/api/v1")
+API_URL = os.getenv("API_URL", "http://localhost:8080/api/v1")
 
 # All 7 skills
 SKILLS = [
@@ -152,6 +152,8 @@ def create_assessment_dataframe(
                 row["skill"] = skill["skill_type"]
                 row["score"] = skill["score"]
                 row["confidence"] = skill["confidence"]
+                row["reasoning"] = skill.get("reasoning", "No reasoning available")
+                row["recommendations"] = skill.get("recommendations", "")
                 rows.append(row)
 
     return pd.DataFrame(rows)
@@ -1136,7 +1138,10 @@ def main():
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
-                # Detailed scores table
+                # Detailed scores table with reasoning
+                st.subheader("Skill Scores & Analysis")
+
+                # Show scores table
                 st.dataframe(
                     student_df[["skill", "score", "confidence"]].rename(
                         columns={
@@ -1147,6 +1152,36 @@ def main():
                     ),
                     use_container_width=True,
                 )
+
+                # Show reasoning for each skill assessment
+                st.subheader("Assessment Reasoning")
+                st.info("💡 Detailed AI-generated reasoning for each skill assessment")
+
+                for _, row in student_df.iterrows():
+                    with st.expander(
+                        f"📊 {row['skill'].replace('_', ' ').title()} - Score: {row['score']*100:.1f}%"
+                    ):
+                        col1, col2 = st.columns([2, 1])
+
+                        with col1:
+                            st.markdown("**AI Reasoning:**")
+                            reasoning = row.get("reasoning", "No reasoning available")
+                            if reasoning and reasoning != "No reasoning available":
+                                st.markdown(reasoning)
+                            else:
+                                st.warning(
+                                    "Reasoning not yet generated for this assessment"
+                                )
+
+                        with col2:
+                            st.metric("Score", f"{row['score']*100:.0f}%")
+                            st.metric("Confidence", f"{row['confidence']*100:.0f}%")
+
+                        # Show recommendations if available
+                        recommendations = row.get("recommendations", "")
+                        if recommendations:
+                            st.markdown("**Recommendations:**")
+                            st.markdown(recommendations)
 
     elif page == "📥 Export Reports":
         st.header("Export Reports")

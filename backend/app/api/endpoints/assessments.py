@@ -1,13 +1,14 @@
 """API endpoints for AI-powered skill assessments."""
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
 
 from app.core.database import get_db
 from app.services.ai_assessment import SkillAssessmentService
+from app.services.evidence_enrichment import EvidenceEnrichmentService
 from app.models.assessment import SkillType, SkillAssessment
 from app.schemas.assessment import (
     AssessmentRequest,
@@ -22,8 +23,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
-# Initialize assessment service (singleton pattern)
+# Initialize services (singleton pattern)
 assessment_service = SkillAssessmentService()
+evidence_enrichment_service = EvidenceEnrichmentService()
 
 
 @router.post(
@@ -32,7 +34,11 @@ assessment_service = SkillAssessmentService()
     status_code=status.HTTP_201_CREATED,
 )
 async def create_skill_assessment(
-    student_id: str,
+    student_id: str = Path(
+        ...,
+        description="Student ID (UUID format)",
+        examples=["550e8400-e29b-41d4-a716-446655440001"],
+    ),
     request: AssessmentRequest = Body(...),
     db: AsyncSession = Depends(get_db),
 ):
@@ -102,7 +108,11 @@ async def create_skill_assessment(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_all_assessments(
-    student_id: str,
+    student_id: str = Path(
+        ...,
+        description="Student ID (UUID format)",
+        examples=["550e8400-e29b-41d4-a716-446655440001"],
+    ),
     use_cached: bool = True,
     db: AsyncSession = Depends(get_db),
 ):
@@ -279,7 +289,11 @@ async def batch_create_assessments(
     response_model=List[AssessmentResponse],
 )
 async def get_student_assessments(
-    student_id: str,
+    student_id: str = Path(
+        ...,
+        description="Student ID (UUID format)",
+        examples=["550e8400-e29b-41d4-a716-446655440001"],
+    ),
     skill_type: Optional[str] = None,
     limit: int = 10,
     db: AsyncSession = Depends(get_db),
@@ -363,8 +377,16 @@ async def get_student_assessments(
     response_model=AssessmentResponse,
 )
 async def get_latest_assessment(
-    student_id: str,
-    skill_type: str,
+    student_id: str = Path(
+        ...,
+        description="Student ID (UUID format)",
+        examples=["550e8400-e29b-41d4-a716-446655440001"],
+    ),
+    skill_type: str = Path(
+        ...,
+        description="Skill type to retrieve",
+        examples=["empathy", "problem_solving", "self_regulation"],
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -430,3 +452,71 @@ async def get_latest_assessment(
         created_at=assessment.created_at,
         updated_at=assessment.updated_at,
     )
+
+
+@router.get(
+    "/{assessment_id}/enriched-evidence",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+)
+async def get_enriched_evidence(
+    assessment_id: str = Path(
+        ...,
+        description="Assessment ID (UUID format)",
+        examples=["550e8400-e29b-41d4-a716-446655440001"],
+    ),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get enriched evidence for an assessment including transcripts and telemetry data.
+
+    This endpoint provides detailed evidence with:
+    - Transcript excerpts showing student speech patterns
+    - Game telemetry events demonstrating behaviors
+    - AI-generated insights and analysis
+    - Timeline of evidence across sessions
+
+    Args:
+        assessment_id: ID of the assessment
+        db: Database session
+
+    Returns:
+        Enriched evidence data with transcripts, telemetry, and AI insights
+
+    Raises:
+        HTTPException: If assessment not found
+    """
+    try:
+        logger.info(f"Fetching enriched evidence for assessment {assessment_id}")
+
+        # Fetch assessment with evidence
+        from sqlalchemy.orm import selectinload
+
+        result = await db.execute(
+            select(SkillAssessment)
+            .options(selectinload(SkillAssessment.evidence))
+            .where(SkillAssessment.id == assessment_id)
+        )
+        assessment = result.scalar_one_or_none()
+
+        if not assessment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Assessment {assessment_id} not found",
+            )
+
+        # Enrich with transcripts and telemetry
+        enriched_data = await evidence_enrichment_service.enrich_assessment_evidence(
+            db, assessment
+        )
+
+        return enriched_data
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching enriched evidence: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch enriched evidence: {str(e)}",
+        )
