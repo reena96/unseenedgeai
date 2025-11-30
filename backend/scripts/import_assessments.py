@@ -13,7 +13,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Tuple
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -21,8 +21,13 @@ from sqlalchemy.orm import selectinload
 # Add parent directory to path to import app modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.database import AsyncSessionLocal
-from app.models.assessment import SkillAssessment, Evidence, SkillType, EvidenceType
+from app.core.database import AsyncSessionLocal  # noqa: E402
+from app.models.assessment import (  # noqa: E402
+    SkillAssessment,
+    Evidence,
+    SkillType,
+    EvidenceType,
+)
 
 
 async def import_assessments(
@@ -84,7 +89,9 @@ async def import_assessments(
                         existing.score = assessment_data["score"]
                         existing.confidence = assessment_data["confidence"]
                         existing.reasoning = assessment_data["reasoning"]
-                        existing.recommendations = assessment_data.get("recommendations")
+                        existing.recommendations = assessment_data.get(
+                            "recommendations"
+                        )
                         existing.feature_importance = assessment_data.get(
                             "feature_importance"
                         )
@@ -98,7 +105,9 @@ async def import_assessments(
                             evidence = Evidence(
                                 id=evidence_data["id"],
                                 assessment_id=assessment_id,
-                                evidence_type=EvidenceType(evidence_data["evidence_type"]),
+                                evidence_type=EvidenceType(
+                                    evidence_data["evidence_type"]
+                                ),
                                 source=evidence_data["source"],
                                 content=evidence_data["content"],
                                 relevance_score=evidence_data["relevance_score"],
@@ -218,9 +227,12 @@ async def main():
 
     print("Starting assessment import...")
     print(f"Input file: {args.input}")
-    print(
-        f"Duplicate handling: {'skip' if args.skip_duplicates else 'update' if args.update_duplicates else 'error on duplicate'}"
+    duplicate_mode = (
+        "skip"
+        if args.skip_duplicates
+        else "update" if args.update_duplicates else "error on duplicate"
     )
+    print(f"Duplicate handling: {duplicate_mode}")
 
     try:
         imported, skipped, updated = await import_assessments(
@@ -229,7 +241,7 @@ async def main():
             update_duplicates=args.update_duplicates,
         )
 
-        print(f"\n✓ Import complete:")
+        print("\n✓ Import complete:")
         print(f"  - Imported: {imported}")
         print(f"  - Skipped: {skipped}")
         print(f"  - Updated: {updated}")

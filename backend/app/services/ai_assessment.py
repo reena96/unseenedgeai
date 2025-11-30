@@ -170,6 +170,81 @@ DEVELOPING (0.0-0.4):
 - Negative response to failure
 - Limited persistence""",
             },
+            SkillType.ADAPTABILITY: {
+                "name": "Adaptability",
+                "definition": """Adaptability is the ability to adjust to new \
+conditions and handle change effectively.
+It involves:
+- Flexibility in thinking
+- Openness to new approaches
+- Adjusting strategies when needed
+- Handling unexpected situations""",
+                "criteria": """HIGH (0.7-1.0):
+- Readily adjusts approach when needed
+- Uses flexibility language ("try different", "change", "adapt")
+- Comfortable with new situations
+- Quick to pivot strategies
+
+MEDIUM (0.4-0.7):
+- Some flexibility in approach
+- Occasional strategy changes
+- Moderate comfort with change
+
+DEVELOPING (0.0-0.4):
+- Rigid thinking patterns
+- Resistance to change
+- Difficulty adjusting to new situations""",
+            },
+            SkillType.COMMUNICATION: {
+                "name": "Communication",
+                "definition": """Communication is the ability to express ideas \
+clearly and listen effectively.
+It involves:
+- Clear expression of thoughts
+- Active listening
+- Asking clarifying questions
+- Appropriate verbal and non-verbal cues""",
+                "criteria": """HIGH (0.7-1.0):
+- Clear, well-structured expression
+- Active listening indicators
+- Asks thoughtful questions
+- Uses communication markers ("explain", "describe", "clarify")
+
+MEDIUM (0.4-0.7):
+- Generally clear expression
+- Some listening behaviors
+- Occasional questions for clarity
+
+DEVELOPING (0.0-0.4):
+- Unclear or incomplete expression
+- Limited listening indicators
+- Rarely asks questions""",
+            },
+            SkillType.COLLABORATION: {
+                "name": "Collaboration",
+                "definition": """Collaboration is the ability to work effectively \
+with others toward shared goals.
+It involves:
+- Teamwork and cooperation
+- Sharing ideas and resources
+- Supporting peers
+- Contributing to group success""",
+                "criteria": """HIGH (0.7-1.0):
+- Strong teamwork indicators
+- Uses collaboration language ("together", "we", "team", "help")
+- Actively supports peers
+- Contributes fairly to group work
+
+MEDIUM (0.4-0.7):
+- Some teamwork behaviors
+- Occasional peer support
+- Participates in group activities
+
+DEVELOPING (0.0-0.4):
+- Limited teamwork indicators
+- Prefers working alone
+- Minimal peer interaction""",
+            },
         }
 
         if skill_type not in skill_definitions:

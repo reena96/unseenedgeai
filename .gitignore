@@ -87,9 +87,12 @@ dev-debug.log
 # tasks.json
 # tasks/
 
-# Data and model files
+# Data files (but keep demo backup)
 backend/data/
-backend/models/
+!backend/data/demo_backup/
+
+# Keep trained models in git for demos
+# backend/models/
 
 # Frontend (separate repository)
 frontend/

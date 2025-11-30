@@ -20,16 +20,14 @@ import asyncio
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Dict, Tuple
 from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
 
 # Add parent directory to path to import app modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.database import AsyncSessionLocal
-from app.models.assessment import SkillAssessment, Evidence, SkillType
-from app.models.student import Student
+from app.core.database import AsyncSessionLocal  # noqa: E402
+from app.models.assessment import SkillAssessment, Evidence, SkillType  # noqa: E402
+from app.models.student import Student  # noqa: E402
 
 
 class IntegrityChecker:
@@ -76,7 +74,7 @@ class IntegrityChecker:
                     f"  Assessment {assessment.id}: score={assessment.score}"
                 )
         else:
-            print(f"✓ All scores are within valid range (0-1)")
+            print("✓ All scores are within valid range (0-1)")
 
         # Check confidence ranges
         result = await session.execute(
@@ -88,14 +86,15 @@ class IntegrityChecker:
 
         if invalid_confidence:
             self.log_issue(
-                f"Found {len(invalid_confidence)} assessments with invalid confidence (outside 0-1 range)"
+                f"Found {len(invalid_confidence)} assessments with invalid "
+                f"confidence (outside 0-1 range)"
             )
             for assessment in invalid_confidence[:5]:
                 self.log_warning(
                     f"  Assessment {assessment.id}: confidence={assessment.confidence}"
                 )
         else:
-            print(f"✓ All confidence scores are within valid range (0-1)")
+            print("✓ All confidence scores are within valid range (0-1)")
 
     async def check_student_coverage(self, session):
         """Check that all students have assessments."""
@@ -146,9 +145,7 @@ class IntegrityChecker:
 
             missing_skills = set(primary_skills) - student_skills
             if missing_skills:
-                incomplete_students.append(
-                    (student, [s.value for s in missing_skills])
-                )
+                incomplete_students.append((student, [s.value for s in missing_skills]))
 
         if incomplete_students:
             self.log_warning(
@@ -180,7 +177,7 @@ class IntegrityChecker:
             self.log_issue(f"Found {len(orphaned)} orphaned evidence records")
 
             if fix:
-                print(f"  Deleting orphaned evidence...")
+                print("  Deleting orphaned evidence...")
                 for evidence in orphaned:
                     await session.delete(evidence)
                 await session.commit()
@@ -190,7 +187,7 @@ class IntegrityChecker:
                     "  Run with --fix-orphans to automatically delete these records"
                 )
         else:
-            print(f"✓ No orphaned evidence records found")
+            print("✓ No orphaned evidence records found")
 
     async def check_evidence_linking(self, session):
         """Check that assessments have proper evidence."""
@@ -215,7 +212,7 @@ class IntegrityChecker:
                         f"  Assessment {assessment.id} ({assessment.skill_type.value})"
                     )
         else:
-            print(f"✓ All assessments have evidence records")
+            print("✓ All assessments have evidence records")
 
         # Check evidence counts
         result = await session.execute(
@@ -229,8 +226,12 @@ class IntegrityChecker:
         )
         evidence_counts = result.fetchall()
 
-        low_evidence = [(id, skill, count) for id, skill, count in evidence_counts if count < 3]
-        high_evidence = [(id, skill, count) for id, skill, count in evidence_counts if count > 20]
+        low_evidence = [
+            (id, skill, count) for id, skill, count in evidence_counts if count < 3
+        ]
+        high_evidence = [
+            (id, skill, count) for id, skill, count in evidence_counts if count > 20
+        ]
 
         if low_evidence:
             self.log_warning(
@@ -242,7 +243,7 @@ class IntegrityChecker:
             )
 
         if not low_evidence and not high_evidence:
-            print(f"✓ Evidence counts are reasonable for all assessments")
+            print("✓ Evidence counts are reasonable for all assessments")
 
     async def check_timestamp_consistency(self, session):
         """Check that timestamps are consistent."""
@@ -267,7 +268,7 @@ class IntegrityChecker:
                     f"  Assessment {assessment.id}: created_at={assessment.created_at}"
                 )
         else:
-            print(f"✓ No future timestamps found")
+            print("✓ No future timestamps found")
 
         # Check for updated_at before created_at
         result = await session.execute(
@@ -279,10 +280,11 @@ class IntegrityChecker:
 
         if inconsistent_timestamps:
             self.log_issue(
-                f"Found {len(inconsistent_timestamps)} assessments with updated_at before created_at"
+                f"Found {len(inconsistent_timestamps)} assessments with "
+                f"updated_at before created_at"
             )
         else:
-            print(f"✓ All timestamps are consistent")
+            print("✓ All timestamps are consistent")
 
     async def check_database_stats(self, session):
         """Show database statistics."""
@@ -295,9 +297,9 @@ class IntegrityChecker:
 
         # Count by skill type
         result = await session.execute(
-            select(
-                SkillAssessment.skill_type, func.count(SkillAssessment.id)
-            ).group_by(SkillAssessment.skill_type)
+            select(SkillAssessment.skill_type, func.count(SkillAssessment.id)).group_by(
+                SkillAssessment.skill_type
+            )
         )
         for skill_type, count in result.fetchall():
             print(f"    - {skill_type.value}: {count}")
@@ -370,7 +372,9 @@ async def main():
 
     try:
         async with AsyncSessionLocal() as session:
-            success = await checker.run_all_checks(session, fix_orphans=args.fix_orphans)
+            success = await checker.run_all_checks(
+                session, fix_orphans=args.fix_orphans
+            )
 
         if not success:
             sys.exit(1)

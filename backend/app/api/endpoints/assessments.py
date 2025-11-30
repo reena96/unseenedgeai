@@ -295,7 +295,7 @@ async def get_student_assessments(
         examples=["550e8400-e29b-41d4-a716-446655440001"],
     ),
     skill_type: Optional[str] = None,
-    limit: int = 10,
+    limit: int = 100,  # Increased to ensure all skills are returned
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -519,4 +519,106 @@ async def get_enriched_evidence(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch enriched evidence: {str(e)}",
+        )
+
+
+@router.post(
+    "/backup",
+    status_code=status.HTTP_200_OK,
+    summary="Backup all assessments to JSON",
+    description="Export all skill assessments to a timestamped JSON backup file",
+)
+async def backup_assessments(
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Create a backup of all skill assessments.
+
+    This endpoint:
+    - Exports all assessments with evidence to JSON
+    - Saves to data/exports/ directory with timestamp
+    - Returns the backup file path
+
+    Returns:
+        Backup file information and path
+    """
+    try:
+        from datetime import datetime
+        from pathlib import Path
+        import json
+
+        logger.info("Starting assessment backup")
+
+        # Fetch all assessments with evidence
+        from sqlalchemy.orm import selectinload
+
+        result = await db.execute(
+            select(SkillAssessment)
+            .options(selectinload(SkillAssessment.evidence))
+            .order_by(SkillAssessment.created_at)
+        )
+        assessments = result.scalars().all()
+
+        # Serialize assessments
+        backup_data = {
+            "backup_timestamp": datetime.utcnow().isoformat(),
+            "total_assessments": len(assessments),
+            "assessments": [
+                {
+                    "id": a.id,
+                    "student_id": a.student_id,
+                    "skill_type": a.skill_type.value,
+                    "score": a.score,
+                    "confidence": a.confidence,
+                    "reasoning": a.reasoning,
+                    "recommendations": a.recommendations,
+                    "feature_importance": a.feature_importance,
+                    "created_at": a.created_at.isoformat(),
+                    "updated_at": a.updated_at.isoformat(),
+                    "evidence": [
+                        {
+                            "id": e.id,
+                            "assessment_id": e.assessment_id,
+                            "evidence_type": e.evidence_type.value,
+                            "source": e.source,
+                            "content": e.content,
+                            "relevance_score": e.relevance_score,
+                            "created_at": e.created_at.isoformat(),
+                            "updated_at": e.updated_at.isoformat(),
+                        }
+                        for e in a.evidence
+                    ],
+                }
+                for a in assessments
+            ],
+        }
+
+        # Ensure backup directory exists
+        backup_dir = Path(__file__).parent.parent.parent.parent / "data" / "exports"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate timestamped filename
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        backup_file = backup_dir / f"assessments_backup_{timestamp}.json"
+
+        # Write backup file
+        with open(backup_file, "w", encoding="utf-8") as f:
+            json.dump(backup_data, f, indent=2, ensure_ascii=False)
+
+        logger.info(
+            f"Successfully backed up {len(assessments)} assessments to {backup_file}"
+        )
+
+        return {
+            "success": True,
+            "backup_file": str(backup_file),
+            "total_assessments": len(assessments),
+            "timestamp": backup_data["backup_timestamp"],
+        }
+
+    except Exception as e:
+        logger.error(f"Error creating backup: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create backup: {str(e)}",
         )

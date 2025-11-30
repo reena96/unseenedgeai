@@ -3,10 +3,14 @@
 Export skill assessments to JSON backup file.
 
 Usage:
-    python scripts/export_assessments.py --output data/exports/assessments_backup.json
-    python scripts/export_assessments.py --student-id <uuid> --output backups/student_assessments.json
-    python scripts/export_assessments.py --skill-type empathy --output backups/empathy_assessments.json
-    python scripts/export_assessments.py --start-date 2024-01-01 --end-date 2024-12-31
+    python scripts/export_assessments.py --output \\
+        data/exports/assessments_backup.json
+    python scripts/export_assessments.py --student-id <uuid> --output \\
+        backups/student_assessments.json
+    python scripts/export_assessments.py --skill-type empathy --output \\
+        backups/empathy_assessments.json
+    python scripts/export_assessments.py --start-date 2024-01-01 \\
+        --end-date 2024-12-31
 """
 
 import asyncio
@@ -15,15 +19,15 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 # Add parent directory to path to import app modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.database import AsyncSessionLocal
-from app.models.assessment import SkillAssessment, Evidence, SkillType
+from app.core.database import AsyncSessionLocal  # noqa: E402
+from app.models.assessment import SkillAssessment, SkillType  # noqa: E402
 
 
 def serialize_assessment(assessment: SkillAssessment) -> dict:
@@ -77,9 +81,7 @@ async def export_assessments(
     """
     async with AsyncSessionLocal() as session:
         # Build query
-        query = select(SkillAssessment).options(
-            selectinload(SkillAssessment.evidence)
-        )
+        query = select(SkillAssessment).options(selectinload(SkillAssessment.evidence))
 
         # Apply filters
         if student_id:

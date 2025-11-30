@@ -7,11 +7,11 @@ from psycopg2.extras import RealDictCursor
 
 # Database connection parameters
 DB_CONFIG = {
-    'host': '127.0.0.1',
-    'port': 5432,
-    'database': 'mass_db',
-    'user': 'mass_user',
-    'password': 'mass_password'
+    "host": "127.0.0.1",
+    "port": 5432,
+    "database": "mass_db",
+    "user": "mass_user",
+    "password": "mass_password",
 }
 
 
@@ -22,22 +22,29 @@ def get_latest_assessments_for_student(student_id: str) -> dict:
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             # Get student info
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT id, first_name, last_name, grade_level
                 FROM students
                 WHERE id = %s
-            """, (student_id,))
+            """,
+                (student_id,),
+            )
             student = cur.fetchone()
 
             if not student:
                 return {"error": "Student not found"}
 
             # Get latest assessment for each skill
-            cur.execute("""
+            cur.execute(
+                """
                 WITH latest_assessments AS (
                     SELECT
                         sa.*,
-                        ROW_NUMBER() OVER (PARTITION BY sa.skill_type ORDER BY sa.created_at DESC) as rn
+                        ROW_NUMBER() OVER (
+                            PARTITION BY sa.skill_type
+                            ORDER BY sa.created_at DESC
+                        ) as rn
                     FROM skill_assessments sa
                     WHERE sa.student_id = %s
                 )
@@ -53,13 +60,16 @@ def get_latest_assessments_for_student(student_id: str) -> dict:
                 FROM latest_assessments
                 WHERE rn = 1
                 ORDER BY skill_type
-            """, (student_id,))
+            """,
+                (student_id,),
+            )
             assessments = cur.fetchall()
 
             # Get evidence for each assessment
             assessment_responses = []
             for assessment in assessments:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT
                         id,
                         evidence_type,
@@ -69,41 +79,50 @@ def get_latest_assessments_for_student(student_id: str) -> dict:
                     FROM evidence
                     WHERE assessment_id = %s
                     ORDER BY relevance_score DESC
-                """, (assessment['id'],))
+                """,
+                    (assessment["id"],),
+                )
                 evidence = cur.fetchall()
 
-                assessment_responses.append({
-                    "id": assessment['id'],
-                    "student_id": student_id,
-                    "skill_type": assessment['skill_type'],
-                    "score": float(assessment['score']),
-                    "confidence": float(assessment['confidence']),
-                    "reasoning": assessment['reasoning'],
-                    "recommendations": assessment['recommendations'],
-                    "evidence": [
-                        {
-                            "id": e['id'],
-                            "evidence_type": e['evidence_type'],
-                            "source": e['source'],
-                            "content": e['content'],
-                            "relevance_score": float(e['relevance_score'])
-                        }
-                        for e in evidence
-                    ],
-                    "created_at": assessment['created_at'].isoformat(),
-                    "updated_at": assessment['updated_at'].isoformat()
-                })
+                assessment_responses.append(
+                    {
+                        "id": assessment["id"],
+                        "student_id": student_id,
+                        "skill_type": assessment["skill_type"],
+                        "score": float(assessment["score"]),
+                        "confidence": float(assessment["confidence"]),
+                        "reasoning": assessment["reasoning"],
+                        "recommendations": assessment["recommendations"],
+                        "evidence": [
+                            {
+                                "id": e["id"],
+                                "evidence_type": e["evidence_type"],
+                                "source": e["source"],
+                                "content": e["content"],
+                                "relevance_score": float(e["relevance_score"]),
+                            }
+                            for e in evidence
+                        ],
+                        "created_at": assessment["created_at"].isoformat(),
+                        "updated_at": assessment["updated_at"].isoformat(),
+                    }
+                )
 
             return {
                 "student": {
-                    "id": student['id'],
-                    "first_name": student['first_name'],
-                    "last_name": student['last_name'],
-                    "grade_level": student['grade_level']
+                    "id": student["id"],
+                    "first_name": student["first_name"],
+                    "last_name": student["last_name"],
+                    "grade_level": student["grade_level"],
                 },
                 "assessments": assessment_responses,
-                "overall_score": sum(a['score'] for a in assessment_responses) / len(assessment_responses) if assessment_responses else 0,
-                "total_skills": len(assessment_responses)
+                "overall_score": (
+                    sum(a["score"] for a in assessment_responses)
+                    / len(assessment_responses)
+                    if assessment_responses
+                    else 0
+                ),
+                "total_skills": len(assessment_responses),
             }
 
     finally:
@@ -112,14 +131,17 @@ def get_latest_assessments_for_student(student_id: str) -> dict:
 
 def main():
     """Generate sample API responses."""
-    print("\n" + "="*100)
-    print(" "*30 + "SAMPLE API RESPONSES FOR DASHBOARD")
-    print("="*100 + "\n")
+    print("\n" + "=" * 100)
+    print(" " * 30 + "SAMPLE API RESPONSES FOR DASHBOARD")
+    print("=" * 100 + "\n")
 
     # Get first student
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
-    cur.execute("SELECT id, first_name, last_name FROM students WHERE is_active = true ORDER BY first_name LIMIT 1")
+    cur.execute(
+        "SELECT id, first_name, last_name FROM students "
+        "WHERE is_active = true ORDER BY first_name LIMIT 1"
+    )
     student_id, first_name, last_name = cur.fetchone()
     cur.close()
     conn.close()
@@ -129,29 +151,33 @@ def main():
     # Get latest assessments
     response = get_latest_assessments_for_student(student_id)
 
-    print("="*100)
+    print("=" * 100)
     print("EXPECTED API RESPONSE FORMAT")
-    print("="*100 + "\n")
+    print("=" * 100 + "\n")
 
     # Print formatted JSON
     print(json.dumps(response, indent=2, default=str))
 
-    print("\n" + "="*100)
+    print("\n" + "=" * 100)
     print("SKILLS SUMMARY")
-    print("="*100 + "\n")
+    print("=" * 100 + "\n")
 
-    if 'assessments' in response:
+    if "assessments" in response:
         print(f"Total Skills: {len(response['assessments'])}/7")
         print(f"Overall Score: {response['overall_score']:.3f}")
-        print(f"\n{'Skill':<20} {'Score':<10} {'Confidence':<12} {'Evidence Count':<15}")
+        print(
+            f"\n{'Skill':<20} {'Score':<10} {'Confidence':<12} {'Evidence Count':<15}"
+        )
         print("-" * 100)
-        for assessment in response['assessments']:
-            print(f"{assessment['skill_type']:<20} {assessment['score']:<10.3f} "
-                  f"{assessment['confidence']:<12.3f} {len(assessment['evidence']):<15}")
+        for assessment in response["assessments"]:
+            print(
+                f"{assessment['skill_type']:<20} {assessment['score']:<10.3f} "
+                f"{assessment['confidence']:<12.3f} {len(assessment['evidence']):<15}"
+            )
 
-    print("\n" + "="*100)
+    print("\n" + "=" * 100)
     print("FRONTEND INTEGRATION NOTES")
-    print("="*100 + "\n")
+    print("=" * 100 + "\n")
 
     print("The frontend should:")
     print("1. Make a GET request to: /api/v1/assessments/{student_id}")
@@ -170,9 +196,9 @@ def main():
     print("GET /api/v1/assessments/{student_id}/adaptability/latest")
     print("... and so on for all 7 skills")
 
-    print("\n" + "="*100)
-    print(" "*35 + "END OF REPORT")
-    print("="*100 + "\n")
+    print("\n" + "=" * 100)
+    print(" " * 35 + "END OF REPORT")
+    print("=" * 100 + "\n")
 
 
 if __name__ == "__main__":

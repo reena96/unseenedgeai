@@ -20,18 +20,23 @@ from uuid import uuid4
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
+from sqlalchemy import select  # noqa: E402
 
-from app.models.student import Student
-from app.models.assessment import SkillAssessment, Evidence, EvidenceType, SkillType
-from app.models.transcript import Transcript
-from app.models.audio import AudioFile
-from app.models.game_telemetry import GameTelemetry, GameSession
+from app.models.student import Student  # noqa: E402
+from app.models.assessment import (  # noqa: E402
+    SkillAssessment,
+    Evidence,
+    EvidenceType,
+    SkillType,
+)
+from app.models.transcript import Transcript  # noqa: E402
+from app.models.audio import AudioFile  # noqa: E402
+from app.models.game_telemetry import GameTelemetry, GameSession  # noqa: E402
 
 # Get DATABASE_URL from environment
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv()
 
@@ -45,53 +50,143 @@ DATABASE_URL = os.getenv(
 
 TRANSCRIPT_TEMPLATES = {
     SkillType.EMPATHY: [
-        "I think I understand how you feel about this. That must be really frustrating when your group members don't listen to your ideas.",
-        "I can see that you're upset. Let me help you work through this problem. We can figure it out together.",
-        "It sounds like your friend is going through a difficult time. How do you think they're feeling right now?",
-        "I notice that Jamie looks sad today. Maybe we should ask if they're okay and see if we can help.",
-        "I understand why that would make you feel left out. Let's talk about how we can include everyone in the activity.",
+        (
+            "I think I understand how you feel about this. That must be really "
+            "frustrating when your group members don't listen to your ideas."
+        ),
+        (
+            "I can see that you're upset. Let me help you work through this "
+            "problem. We can figure it out together."
+        ),
+        (
+            "It sounds like your friend is going through a difficult time. "
+            "How do you think they're feeling right now?"
+        ),
+        (
+            "I notice that Jamie looks sad today. Maybe we should ask if "
+            "they're okay and see if we can help."
+        ),
+        (
+            "I understand why that would make you feel left out. Let's talk "
+            "about how we can include everyone in the activity."
+        ),
     ],
     SkillType.PROBLEM_SOLVING: [
-        "Let me think through this step by step. First, we need to identify the main problem, then brainstorm solutions.",
-        "I tried one approach and it didn't work, so now I'm going to try a different strategy to solve this.",
-        "We can break this complex problem into smaller parts and tackle each one individually.",
-        "I'll make a plan before I start. First this, then that, and finally we'll check if it worked.",
-        "This is tricky, but I think if we approach it from a different angle, we might find the solution.",
+        (
+            "Let me think through this step by step. First, we need to "
+            "identify the main problem, then brainstorm solutions."
+        ),
+        (
+            "I tried one approach and it didn't work, so now I'm going to "
+            "try a different strategy to solve this."
+        ),
+        (
+            "We can break this complex problem into smaller parts and "
+            "tackle each one individually."
+        ),
+        (
+            "I'll make a plan before I start. First this, then that, "
+            "and finally we'll check if it worked."
+        ),
+        (
+            "This is tricky, but I think if we approach it from a different "
+            "angle, we might find the solution."
+        ),
     ],
     SkillType.SELF_REGULATION: [
-        "I'm feeling frustrated right now, but I'm going to take a deep breath and calm down before continuing.",
-        "I need to focus on my work and not get distracted by what's happening around me.",
+        (
+            "I'm feeling frustrated right now, but I'm going to take a deep "
+            "breath and calm down before continuing."
+        ),
+        (
+            "I need to focus on my work and not get distracted by what's "
+            "happening around me."
+        ),
         "I'm going to wait my turn and not interrupt while others are speaking.",
-        "This is challenging, but I'm going to stay calm and keep working on it steadily.",
-        "I feel like giving up, but I know I need to manage my emotions and keep trying.",
+        (
+            "This is challenging, but I'm going to stay calm and keep "
+            "working on it steadily."
+        ),
+        (
+            "I feel like giving up, but I know I need to manage my emotions "
+            "and keep trying."
+        ),
     ],
     SkillType.RESILIENCE: [
-        "I didn't get it right the first time, but that's okay. I'm going to try again with a different approach.",
-        "This is really hard, but I'm not going to give up. I'll keep practicing until I improve.",
-        "I made a mistake, but I learned from it. Now I know what to do differently next time.",
-        "Even though I failed the test, I'm going to study harder and do better next time.",
-        "I'm going to persist through this challenge. I've overcome difficult things before.",
+        (
+            "I didn't get it right the first time, but that's okay. I'm "
+            "going to try again with a different approach."
+        ),
+        (
+            "This is really hard, but I'm not going to give up. I'll keep "
+            "practicing until I improve."
+        ),
+        (
+            "I made a mistake, but I learned from it. Now I know what to "
+            "do differently next time."
+        ),
+        (
+            "Even though I failed the test, I'm going to study harder and "
+            "do better next time."
+        ),
+        (
+            "I'm going to persist through this challenge. I've overcome "
+            "difficult things before."
+        ),
     ],
     SkillType.COMMUNICATION: [
         "Let me explain my thinking clearly so everyone understands my idea.",
-        "I'm listening carefully to what you're saying. Can you tell me more about your perspective?",
-        "I disagree with that approach, but let me explain why in a respectful way.",
+        (
+            "I'm listening carefully to what you're saying. Can you tell me "
+            "more about your perspective?"
+        ),
+        (
+            "I disagree with that approach, but let me explain why in a "
+            "respectful way."
+        ),
         "I need to ask for help because I don't understand this part yet.",
-        "Let me summarize what we've discussed to make sure we're all on the same page.",
+        (
+            "Let me summarize what we've discussed to make sure we're all "
+            "on the same page."
+        ),
     ],
     SkillType.COLLABORATION: [
-        "Let's work together on this project. You can handle this part and I'll do that part.",
-        "Great idea! I think if we combine your approach with mine, we'll have an even better solution.",
-        "I'll help you with your task if you help me with mine. Teamwork makes this easier.",
-        "We should divide the responsibilities fairly so everyone contributes equally to the group.",
-        "Let's listen to everyone's ideas before we decide on our final approach.",
+        (
+            "Let's work together on this project. You can handle this part "
+            "and I'll do that part."
+        ),
+        (
+            "Great idea! I think if we combine your approach with mine, we'll "
+            "have an even better solution."
+        ),
+        (
+            "I'll help you with your task if you help me with mine. "
+            "Teamwork makes this easier."
+        ),
+        (
+            "We should divide the responsibilities fairly so everyone "
+            "contributes equally to the group."
+        ),
+        ("Let's listen to everyone's ideas before we decide on our " "final approach."),
     ],
     SkillType.ADAPTABILITY: [
-        "The plan changed, so I need to adjust my approach and be flexible.",
-        "This isn't working the way I expected. Let me try a completely different method.",
-        "I was ready for one thing, but now I need to quickly adapt to this new situation.",
-        "The rules changed, so I'm going to modify my strategy to fit the new requirements.",
-        "I'm comfortable trying new ways of doing things and changing direction when needed.",
+        ("The plan changed, so I need to adjust my approach and " "be flexible."),
+        (
+            "This isn't working the way I expected. Let me try a "
+            "completely different method."
+        ),
+        (
+            "I was ready for one thing, but now I need to quickly adapt "
+            "to this new situation."
+        ),
+        (
+            "The rules changed, so I'm going to modify my strategy to "
+            "fit the new requirements."
+        ),
+        (
+            "I'm comfortable trying new ways of doing things and changing "
+            "direction when needed."
+        ),
     ],
 }
 
@@ -300,7 +395,7 @@ async def generate_game_session(
         mission_id=mission["id"],
         started_at=started_at,
         ended_at=ended_at,
-        status="completed",
+        game_version="1.0.0",
     )
     session.add(game_session)
     await session.flush()
@@ -346,12 +441,16 @@ async def enrich_assessment_with_evidence(
     session.add(transcript_evidence)
 
     # Add telemetry evidence
+    duration_seconds = (game_session.ended_at - game_session.started_at).total_seconds()
     telemetry_evidence = Evidence(
         id=str(uuid4()),
         assessment_id=assessment.id,
         evidence_type=EvidenceType.BEHAVIORAL,
         source=f"Game Session: {game_session.mission_id}",
-        content=f"Completed mission with {random.randint(10, 20)} skill-relevant actions. Duration: {(game_session.ended_at - game_session.started_at).total_seconds():.0f} seconds.",
+        content=(
+            f"Completed mission with {random.randint(10, 20)} skill-relevant "
+            f"actions. Duration: {duration_seconds:.0f} seconds."
+        ),
         relevance_score=random.uniform(0.75, 0.95),
     )
     session.add(telemetry_evidence)
@@ -379,15 +478,30 @@ def generate_ai_reasoning(assessment: SkillAssessment, transcript_excerpt: str) 
         descriptor = "is beginning to develop"
 
     reasoning = f"The student {descriptor} {skill_name} skills. "
-    reasoning += f"Evidence from classroom interactions shows authentic application of {skill_name.lower()} in real-world contexts. "
-    reasoning += f"Game-based behavioral data corroborates these observations, indicating {level} proficiency. "
+    reasoning += (
+        f"Evidence from classroom interactions shows authentic application of "
+        f"{skill_name.lower()} in real-world contexts. "
+    )
+    reasoning += (
+        f"Game-based behavioral data corroborates these observations, "
+        f"indicating {level} proficiency. "
+    )
 
     if score >= 0.8:
-        reasoning += f"Continue to provide opportunities for peer mentoring and leadership in {skill_name.lower()}."
+        reasoning += (
+            f"Continue to provide opportunities for peer mentoring and "
+            f"leadership in {skill_name.lower()}."
+        )
     elif score >= 0.6:
-        reasoning += f"Encourage continued practice with structured activities targeting {skill_name.lower()}."
+        reasoning += (
+            f"Encourage continued practice with structured activities "
+            f"targeting {skill_name.lower()}."
+        )
     else:
-        reasoning += f"Provide additional support and scaffolding to develop {skill_name.lower()} competencies."
+        reasoning += (
+            f"Provide additional support and scaffolding to develop "
+            f"{skill_name.lower()} competencies."
+        )
 
     return reasoning
 
@@ -465,14 +579,14 @@ async def enrich_all_students():
                             session, student, mission
                         )
                         total_sessions += 1
-                        print(f"     ✓ Generated game session (random)")
+                        print("     ✓ Generated game session (random)")
 
                     # Link evidence to assessment
                     await enrich_assessment_with_evidence(
                         session, assessment, transcript, game_session
                     )
                     total_evidence += 2  # transcript + telemetry
-                    print(f"     ✓ Linked evidence to assessment")
+                    print("     ✓ Linked evidence to assessment")
 
                 except Exception as e:
                     print(f"     ❌ Error: {str(e)}")
@@ -482,14 +596,14 @@ async def enrich_all_students():
             await session.commit()
             print(f"  ✅ Completed {student.first_name} {student.last_name}")
 
-        print(f"\n" + "=" * 60)
-        print(f"✅ Evidence enrichment completed!")
-        print(f"📊 Statistics:")
+        print("\n" + "=" * 60)
+        print("✅ Evidence enrichment completed!")
+        print("📊 Statistics:")
         print(f"   - Students processed: {len(students)}")
         print(f"   - Transcripts generated: {total_transcripts}")
         print(f"   - Game sessions created: {total_sessions}")
         print(f"   - Evidence items linked: {total_evidence}")
-        print(f"=" * 60)
+        print("=" * 60)
 
 
 if __name__ == "__main__":

@@ -14,9 +14,8 @@ import xgboost as xgb
 
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from app.models.assessment import SkillType
-from app.ml.model_metadata import ModelRegistry
+from app.models.assessment import SkillType  # noqa: E402
+from app.ml.model_metadata import ModelRegistry  # noqa: E402
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -47,9 +46,12 @@ class SkillModelTrainer:
         # Skill types to train
         self.skill_types = [
             SkillType.EMPATHY,
+            SkillType.ADAPTABILITY,
             SkillType.PROBLEM_SOLVING,
             SkillType.SELF_REGULATION,
             SkillType.RESILIENCE,
+            SkillType.COMMUNICATION,
+            SkillType.COLLABORATION,
         ]
 
         logger.info(f"Initialized trainer with data from {self.data_path}")
@@ -125,9 +127,12 @@ class SkillModelTrainer:
         # Skill-specific derived feature
         skill_feature_map = {
             SkillType.EMPATHY: "empathy_social_interaction",
+            SkillType.ADAPTABILITY: "adaptability_flexibility",
             SkillType.PROBLEM_SOLVING: "problem_solving_cognitive",
             SkillType.SELF_REGULATION: "self_regulation_focus",
             SkillType.RESILIENCE: "resilience_recovery",
+            SkillType.COMMUNICATION: "communication_expression",
+            SkillType.COLLABORATION: "collaboration_teamwork",
         }
 
         all_features = linguistic_features + behavioral_features
