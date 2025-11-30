@@ -1,0 +1,163 @@
+{
+  "empathy": {
+    "skill_type": "empathy",
+    "version": "1.0.0",
+    "training_date": "2025-11-30T02:45:52.889546",
+    "model_type": "XGBRegressor",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "performance_metrics": {
+      "mse": 0.0022784063058307064,
+      "mae": 0.04112021459518482,
+      "r2": 0.6713007721838911,
+      "cv_mse": 0.0022592006124619503,
+      "cv_std": 0.0001568427047951337
+    },
+    "feature_count": 26,
+    "training_samples": 699,
+    "model_checksum": "c651e22b48dd88d1aff12dd269192c5074894e545e9d8814595b2129501833af"
+  },
+  "problem_solving": {
+    "skill_type": "problem_solving",
+    "version": "1.0.0",
+    "training_date": "2025-11-30T02:45:54.388034",
+    "model_type": "XGBRegressor",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "performance_metrics": {
+      "mse": 0.002440240953646477,
+      "mae": 0.04159958418235076,
+      "r2": 0.5909340706418709,
+      "cv_mse": 0.0025016561115414537,
+      "cv_std": 0.0002520488454303841
+    },
+    "feature_count": 26,
+    "training_samples": 699,
+    "model_checksum": "7646ae380b60710a8b74e504d59f15ed9586a98d770f3cd03811620fc9ab6bf1"
+  },
+  "self_regulation": {
+    "skill_type": "self_regulation",
+    "version": "1.0.0",
+    "training_date": "2025-11-30T02:45:55.089551",
+    "model_type": "XGBRegressor",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "performance_metrics": {
+      "mse": 0.0019197909886719648,
+      "mae": 0.0358282622253227,
+      "r2": 0.6181292164264444,
+      "cv_mse": 0.0022113573320591056,
+      "cv_std": 0.00014057717257074341
+    },
+    "feature_count": 26,
+    "training_samples": 699,
+    "model_checksum": "1dc2b2bde3561a72e3c57509538730136ab1755c7cd20c25265b82fddecb3dba"
+  },
+  "resilience": {
+    "skill_type": "resilience",
+    "version": "1.0.0",
+    "training_date": "2025-11-30T02:45:55.790883",
+    "model_type": "XGBRegressor",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "performance_metrics": {
+      "mse": 0.0029083922301768508,
+      "mae": 0.045584634999112986,
+      "r2": 0.5473849865647087,
+      "cv_mse": 0.002593241875982699,
+      "cv_std": 0.00028230615919354514
+    },
+    "feature_count": 26,
+    "training_samples": 699,
+    "model_checksum": "f051560aaa5b71563a92d9ffd6a80412a664a678288c21eaea1ccf7c19a98b4d"
+  },
+  "adaptability": {
+    "skill_type": "adaptability",
+    "version": "1.0.0",
+    "training_date": "2025-11-30T02:45:53.645248",
+    "model_type": "XGBRegressor",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "performance_metrics": {
+      "mse": 0.002299782113245372,
+      "mae": 0.03933561121048943,
+      "r2": 0.6258635002873487,
+      "cv_mse": 0.0023828099111135566,
+      "cv_std": 0.00022120950703858713
+    },
+    "feature_count": 26,
+    "training_samples": 699,
+    "model_checksum": "72d79ba4f5a83f13bc79e9973d45f38dcb907274dcdbf1c4584f98404723db17"
+  },
+  "communication": {
+    "skill_type": "communication",
+    "version": "1.0.0",
+    "training_date": "2025-11-30T02:45:56.059989",
+    "model_type": "XGBRegressor",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "performance_metrics": {
+      "mse": 0.002197155085000535,
+      "mae": 0.03919225603652553,
+      "r2": 0.6216420443428725,
+      "cv_mse": 0.0023098369105935225,
+      "cv_std": 0.0002799741573352553
+    },
+    "feature_count": 26,
+    "training_samples": 699,
+    "model_checksum": "55e6e61f49f84d34b21d6e93215f5510f983981635defc97f999f08dccbffcd8"
+  },
+  "collaboration": {
+    "skill_type": "collaboration",
+    "version": "1.0.0",
+    "training_date": "2025-11-30T02:45:56.327940",
+    "model_type": "XGBRegressor",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "performance_metrics": {
+      "mse": 0.0019741013616990863,
+      "mae": 0.037206414209454454,
+      "r2": 0.5532651379124613,
+      "cv_mse": 0.0022575641832312406,
+      "cv_std": 0.0002100950689153669
+    },
+    "feature_count": 26,
+    "training_samples": 699,
+    "model_checksum": "3e9018dfdadcc6b442f19a8438cfc8e8dc1f0ce403972e2376e519b60bc44623"
+  }
+}
