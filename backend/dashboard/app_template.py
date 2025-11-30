@@ -363,8 +363,29 @@ def create_class_heatmap(batch_results: Dict[str, Any]) -> go.Figure:
     for result in batch_results.get("results", []):
         if result["status"] == "success":
             students.append(result["student_id"])
-            for skill in result["skills"]:
-                skill_scores[skill["skill_type"]].append(skill["score"])
+            # Create a map of skill_type -> score for this result
+            result_skills = {
+                s["skill_type"]: s["score"] for s in result.get("skills", [])
+            }
+            # Append score for each skill (0 if missing)
+            for skill in SKILLS:
+                skill_scores[skill].append(result_skills.get(skill, 0))
+
+    # Handle empty results
+    if not students:
+        # Return empty figure with message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No student data available",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font=dict(size=16),
+        )
+        fig.update_layout(height=200)
+        return fig
 
     # Create dataframe
     df = pd.DataFrame(skill_scores, index=students)

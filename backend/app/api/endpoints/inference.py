@@ -9,9 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import time
 import os
 
-from app.api.endpoints.auth import get_current_user, TokenData
-from app.core.database import get_db
-from app.core.metrics import get_metrics_store, InferenceMetrics as MetricsData
+from app.core.database import get_db, AsyncSessionLocal
+from app.core.metrics import get_metrics_store
 from app.services.skill_inference import SkillInferenceService
 from app.services.evidence_service import EvidenceService
 from app.models.assessment import SkillType
@@ -293,9 +292,10 @@ async def infer_single_skill(
         try:
             skill_enum = SkillType(skill_type)
         except ValueError:
+            valid_skills = [s.value for s in SkillType]
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid skill type: {skill_type}. Must be one of: {[s.value for s in SkillType]}",
+                detail=f"Invalid skill type: {skill_type}. Must be one of: {valid_skills}",
             )
 
         logger.info(f"Running {skill_type} inference for student {student_id}")
@@ -464,7 +464,6 @@ class BatchInferenceResponse(BaseModel):
 async def batch_infer_student_skills(
     request: BatchInferenceRequest,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
     inference_service: SkillInferenceService = Depends(get_inference_service),
 ):
     """
@@ -490,95 +489,104 @@ async def batch_infer_student_skills(
     logger.info(f"Starting batch inference for {len(student_ids)} students")
 
     # Process students in parallel using asyncio.gather
+    # Each student gets its own database session to avoid concurrent session errors
     async def infer_single_student(student_id: str) -> BatchInferenceStatus:
         """Infer skills for a single student and return status."""
         student_start = time.time()
-        try:
-            # Run inference for all skills
-            results = await inference_service.infer_all_skills(db, student_id)
+        # Create a new session for each student to allow concurrent operations
+        async with AsyncSessionLocal() as session:
+            try:
+                # Run inference for all skills
+                results = await inference_service.infer_all_skills(session, student_id)
 
-            if not results:
-                return BatchInferenceStatus(
-                    student_id=student_id,
-                    status="error",
-                    error_message="No trained models available or insufficient data",
-                )
-
-            # Create evidence service for batch assessments
-            evidence_service = EvidenceService()
-
-            # Build skill responses
-            skill_responses = []
-            for skill_type, (score, confidence, importance) in results.items():
-                model_version = inference_service.get_model_version(skill_type)
-
-                # Save assessment with evidence to database
-                assessment = await evidence_service.create_assessment_with_evidence(
-                    session=db,
-                    student_id=student_id,
-                    skill_type=skill_type,
-                    score=score,
-                    confidence=confidence,
-                    feature_importance=importance,
-                )
-
-                # Extract evidence for API response
-                evidence_items = [
-                    EvidenceItem(
-                        source=ev.source, text=ev.content, relevance=ev.relevance_score
+                if not results:
+                    return BatchInferenceStatus(
+                        student_id=student_id,
+                        status="error",
+                        error_message="No trained models available or insufficient data",
                     )
-                    for ev in assessment.evidence
-                ]
 
-                skill_responses.append(
-                    SkillScoreResponse(
-                        skill_type=skill_type.value,
+                # Create evidence service for batch assessments
+                evidence_service = EvidenceService()
+
+                # Build skill responses
+                skill_responses = []
+                for skill_type, (score, confidence, importance) in results.items():
+                    model_version = inference_service.get_model_version(skill_type)
+
+                    # Save assessment with evidence to database
+                    assessment = await evidence_service.create_assessment_with_evidence(
+                        session=session,
+                        student_id=student_id,
+                        skill_type=skill_type,
                         score=score,
                         confidence=confidence,
                         feature_importance=importance,
-                        inference_time_ms=(time.time() - student_start) * 1000,
-                        model_version=model_version,
-                        evidence=evidence_items,
-                        reasoning=assessment.reasoning,
                     )
+
+                    # Extract evidence for API response
+                    evidence_items = [
+                        EvidenceItem(
+                            source=ev.source,
+                            text=ev.content,
+                            relevance=ev.relevance_score,
+                        )
+                        for ev in assessment.evidence
+                    ]
+
+                    skill_responses.append(
+                        SkillScoreResponse(
+                            skill_type=skill_type.value,
+                            score=score,
+                            confidence=confidence,
+                            feature_importance=importance,
+                            inference_time_ms=(time.time() - student_start) * 1000,
+                            model_version=model_version,
+                            evidence=evidence_items,
+                            reasoning=assessment.reasoning,
+                        )
+                    )
+
+                # Commit the session after all skills are processed
+                await session.commit()
+
+                inference_time = (time.time() - student_start) * 1000
+
+                # Record success metric
+                background_tasks.add_task(
+                    record_metrics,
+                    student_id=student_id,
+                    inference_time_ms=inference_time,
+                    success=True,
                 )
 
-            inference_time = (time.time() - student_start) * 1000
+                return BatchInferenceStatus(
+                    student_id=student_id,
+                    status="success",
+                    skills=skill_responses,
+                    total_inference_time_ms=inference_time,
+                )
 
-            # Record success metric
-            background_tasks.add_task(
-                record_metrics,
-                student_id=student_id,
-                inference_time_ms=inference_time,
-                success=True,
-            )
+            except Exception as e:
+                await session.rollback()
+                inference_time = (time.time() - student_start) * 1000
 
-            return BatchInferenceStatus(
-                student_id=student_id,
-                status="success",
-                skills=skill_responses,
-                total_inference_time_ms=inference_time,
-            )
+                # Record failure metric
+                background_tasks.add_task(
+                    record_metrics,
+                    student_id=student_id,
+                    inference_time_ms=inference_time,
+                    success=False,
+                    error_message=str(e),
+                )
 
-        except Exception as e:
-            inference_time = (time.time() - student_start) * 1000
+                logger.error(f"Batch inference failed for student {student_id}: {e}")
 
-            # Record failure metric
-            background_tasks.add_task(
-                record_metrics,
-                student_id=student_id,
-                inference_time_ms=inference_time,
-                success=False,
-                error_message=str(e),
-            )
-
-            logger.error(f"Batch inference failed for student {student_id}: {e}")
-
-            return BatchInferenceStatus(
-                student_id=student_id,
-                status="error",
-                error_message=str(e),
-            )
+                return BatchInferenceStatus(
+                    student_id=student_id,
+                    status="error",
+                    error_message=str(e),
+                )
 
     # Run all inferences in parallel
     results = await asyncio.gather(
