@@ -17,7 +17,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy all dashboard files
 COPY *.py ./
-COPY components/ ./components/ 2>/dev/null || true
 
 # Expose port (Railway uses $PORT)
 EXPOSE 8501
