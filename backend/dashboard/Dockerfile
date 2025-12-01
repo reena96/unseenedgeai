@@ -18,6 +18,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy all dashboard files
 COPY *.py ./
 
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose port (Railway uses $PORT)
 EXPOSE 8501
 
@@ -26,6 +30,9 @@ ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 ENV STREAMLIT_SERVER_HEADLESS=true
 ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
-# Default command - runs app_template.py by default
-# For other dashboards, set DASHBOARD_APP env var in Railway
-CMD sh -c 'streamlit run ${DASHBOARD_APP:-app_template.py} --server.port=${PORT:-8501} --server.address=0.0.0.0'
+# Use entrypoint script for proper variable expansion
+# Set DASHBOARD_APP env var in Railway for different dashboards:
+#   teacher-dashboard: (leave empty - defaults to app_template.py)
+#   admin-dashboard: admin_dashboard.py
+#   student-portal: student_portal.py
+ENTRYPOINT ["/entrypoint.sh"]
