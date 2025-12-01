@@ -39,12 +39,12 @@ USER mass
 # Add local bin to PATH for mass user
 ENV PATH=/home/mass/.local/bin:$PATH
 
-# Expose port
+# Expose port (Railway uses $PORT)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8080/api/v1/health || exit 1
+# Health check disabled for Railway (uses its own health checks)
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+#     CMD curl -f http://localhost:${PORT:-8080}/api/v1/health || exit 1
 
-# Run application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run application - use shell form to expand $PORT
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}
