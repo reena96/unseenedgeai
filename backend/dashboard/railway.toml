@@ -1,0 +1,11 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Start command will be set per-service in Railway dashboard:
+# teacher-dashboard: streamlit run app_template.py --server.port=$PORT --server.address=0.0.0.0
+# admin-dashboard: streamlit run admin_dashboard.py --server.port=$PORT --server.address=0.0.0.0
+# student-portal: streamlit run student_portal.py --server.port=$PORT --server.address=0.0.0.0
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
