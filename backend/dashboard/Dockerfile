@@ -27,5 +27,6 @@ ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 ENV STREAMLIT_SERVER_HEADLESS=true
 ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
-# Default command - Railway will override with custom start command
-CMD ["streamlit", "run", "app_template.py", "--server.address=0.0.0.0"]
+# Default command - use shell form to expand $PORT (defaults to 8501)
+# NOTE: For admin-dashboard and student-portal, override startCommand in Railway dashboard
+CMD streamlit run app_template.py --server.port=${PORT:-8501} --server.address=0.0.0.0
