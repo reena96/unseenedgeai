@@ -28,4 +28,4 @@ ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
 # Default command - runs app_template.py by default
 # For other dashboards, set DASHBOARD_APP env var in Railway
-CMD ["/bin/sh", "-c", "streamlit run ${DASHBOARD_APP:-app_template.py} --server.port=${PORT:-8501} --server.address=0.0.0.0"]
+CMD sh -c 'streamlit run ${DASHBOARD_APP:-app_template.py} --server.port=${PORT:-8501} --server.address=0.0.0.0'
